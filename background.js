@@ -17,7 +17,7 @@ let blockedSitesList = [
   "www.uptodate.com",
   "www.webmd.com",
   "my.clevelandclinic.org",
-  "www.nhs.uk",
+  //"www.nhs.uk",
 ];
 
 //chrome.storage.sync.clear();

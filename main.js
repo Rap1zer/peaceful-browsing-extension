@@ -1,5 +1,6 @@
 const siteInput = document.getElementById("site-input");
 const blockBtn = document.getElementById("block-btn");
+const pausetBtn = document.getElementById("pause-btn");
 const blockedUl = document.getElementById("blocked-list");
 let blockedSitesList = [];
 
@@ -20,3 +21,5 @@ blockBtn.addEventListener("click", () => {
     siteInput.value = "";
   }
 });
+
+blockBtn.addEventListener("click", () => {});

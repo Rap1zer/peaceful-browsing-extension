@@ -4,13 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Search Result Blacklist</title>
-    <script src="popup.js" defer></script>
+    <script src="main.js" defer></script>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h2>Blocked Websites</h2>
     <ul id="blocked-list"></ul>
-    <input type="text" id="site-input" placeholder="Enter a site to block" />
+    <input type="range" id="path-slider" />
+    <input
+      type="text"
+      id="site-input"
+      placeholder="Enter a website host name to block"
+    />
     <button id="block-btn">Block Site</button>
+    <button id="see-blocked-sites-btn">See blocked sites</button>
+    <button id="pause-btn">Pause temporarily</button>
   </body>
 </html>

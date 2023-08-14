@@ -6,7 +6,7 @@
   "permissions": ["activeTab", "storage", "webNavigation", "tabs", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "main.html"
   },
   "content_scripts": [
     {
