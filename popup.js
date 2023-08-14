@@ -12,6 +12,11 @@ chrome.storage.sync.get("blockedSites", function (data) {
 });
 
 blockBtn.addEventListener("click", () => {
-  blockedSitesList.push(siteInput.value);
-  chrome.storage.sync.set({ blockedSites: blockedSitesList });
+  siteInput.value.trim();
+  if (siteInput.value) {
+    blockedSitesList.push(siteInput.value);
+    chrome.storage.sync.set({ blockedSites: blockedSitesList });
+    blockedUl.innerHTML += `<li>${siteInput.value}</li>`;
+    siteInput.value = "";
+  }
 });

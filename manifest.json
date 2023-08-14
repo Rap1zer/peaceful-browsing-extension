@@ -8,6 +8,12 @@
   "action": {
     "default_popup": "popup.html"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://www.google.com/search*"],
+      "js": ["content.js"]
+    }
+  ],
   "background": {
     "service_worker": "background.js"
   }
