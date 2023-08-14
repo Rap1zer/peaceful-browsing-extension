@@ -1,0 +1,12 @@
+html {
+  background: darkgrey;
+  display: flex;
+}
+
+html::before {
+  content: "!! Stop !!";
+}
+
+body {
+  display: none !important;
+}
