@@ -20,15 +20,17 @@ let blockedSitesList = [
   //"www.nhs.uk",
 ];
 
-//chrome.storage.sync.clear();
-//chrome.storage.sync.set({ blockedSites: blockedSitesList });
+// chrome.storage.sync.clear();
+// chrome.storage.sync.set({ blockedSites: blockedSitesList });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
-  retrieveBlockedSites();
+  await chrome.storage.sync.get("blockedSites", function (data) {
+    blockedSitesList = data.blockedSites; // Use the retrieved array or an empty array
+  });
 
-  const hostName = new URL(tab.url).hostname;
-  if (blockedSitesList.indexOf(hostName) != -1) {
+  const activeURL = new URL(tab.url);
+  if (isBlockedSite(activeURL.origin + activeURL.pathname)) {
     try {
       await chrome.scripting.insertCSS({
         target: {
@@ -42,11 +44,10 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   }
 });
 
-// // Fetch the stored URLs array from chrome.storage
-function retrieveBlockedSites() {
-  chrome.storage.sync.get("blockedSites", function (data) {
-    blockedSitesList = data.blockedSites || []; // Use the retrieved array or an empty array
-  });
+function isBlockedSite(url) {
+  return blockedSitesList.some((site) => url.includes(site));
 }
 
-retrieveBlockedSites();
+chrome.storage.sync.get("blockedSites", function (data) {
+  blockedSitesList = data.blockedSites || []; // Use the retrieved array or an empty array
+});
