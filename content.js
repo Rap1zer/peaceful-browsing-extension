@@ -1,3 +1,5 @@
+console.log("injected");
+
 // Check if the current page is a Google Search page
 if (
   window.location.hostname === "www.google.com" &&
@@ -5,12 +7,12 @@ if (
 ) {
   // List of keywords to filter out
   const keywordsToFilter = [
-    //  "anxiety",
-    //  "symptoms",
-    //  "worried",
-    //  "diagnosis",
-    //  "rash",
-    //  "rashes",
+    "anxiety",
+    "symptoms",
+    "worried",
+    "diagnosis",
+    "rash",
+    "rashes",
   ];
 
   // Select and remove search results with unwanted keywords

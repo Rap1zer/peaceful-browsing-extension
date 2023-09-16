@@ -23,16 +23,9 @@ let blockedSitesList = [
 //chrome.storage.sync.clear();
 //chrome.storage.sync.set({ blockedSites: blockedSitesList });
 
-// Fetch the stored URLs array from chrome.storage
-chrome.storage.sync.get("blockedSites", function (data) {
-  blockedSitesList = data.blockedSites || []; // Use the retrieved array or an empty array
-});
-
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
-  chrome.storage.sync.get("blockedSites", function (data) {
-    blockedSitesList = data.blockedSites || []; // Use the retrieved array or an empty array
-  });
+  retrieveBlockedSites();
 
   const hostName = new URL(tab.url).hostname;
   if (blockedSitesList.indexOf(hostName) != -1) {
@@ -48,3 +41,12 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     }
   }
 });
+
+// // Fetch the stored URLs array from chrome.storage
+function retrieveBlockedSites() {
+  chrome.storage.sync.get("blockedSites", function (data) {
+    blockedSitesList = data.blockedSites || []; // Use the retrieved array or an empty array
+  });
+}
+
+retrieveBlockedSites();

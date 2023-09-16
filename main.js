@@ -1,6 +1,5 @@
 const siteInput = document.getElementById("site-input");
-const blockBtn = document.getElementById("block-btn");
-const pausetBtn = document.getElementById("pause-btn");
+const pauseBtn = document.getElementById("pause-btn");
 const blockedUl = document.getElementById("blocked-list");
 let blockedSitesList = [];
 
@@ -12,14 +11,8 @@ chrome.storage.sync.get("blockedSites", function (data) {
   }
 });
 
-blockBtn.addEventListener("click", () => {
-  siteInput.value.trim();
-  if (siteInput.value) {
-    blockedSitesList.push(siteInput.value);
-    chrome.storage.sync.set({ blockedSites: blockedSitesList });
-    blockedUl.innerHTML += `<li>${siteInput.value}</li>`;
-    siteInput.value = "";
-  }
-});
-
-blockBtn.addEventListener("click", () => {});
+document
+  .getElementById("block-a-site-page-btn")
+  .addEventListener("click", () => {
+    window.location.href = "block-site.html";
+  });
