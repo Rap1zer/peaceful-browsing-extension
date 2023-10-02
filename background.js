@@ -4,7 +4,7 @@ let blockedSitesList = [
   "www.healthline.com",
   "www.mayoclinic.org",
   "www.medicinenet.com",
-  "medlineplus.gov",
+  "www.medlineplus.gov",
   "www.medpagetoday.com",
   "www.medscape.com",
   "www.msdmanuals.com",
@@ -17,11 +17,11 @@ let blockedSitesList = [
   "www.uptodate.com",
   "www.webmd.com",
   "my.clevelandclinic.org",
-  //"www.nhs.uk",
+  "www.nhs.uk",
 ];
 
-// chrome.storage.sync.clear();
-// chrome.storage.sync.set({ blockedSites: blockedSitesList });
+//chrome.storage.sync.clear();
+//chrome.storage.sync.set({ blockedSites: blockedSitesList });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
@@ -44,6 +44,7 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   }
 });
 
+// Check if site is in the list of blocked sites
 function isBlockedSite(url) {
   return blockedSitesList.some((site) => url.includes(site));
 }
