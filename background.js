@@ -50,5 +50,5 @@ function isBlockedSite(url) {
 }
 
 chrome.storage.sync.get("blockedSites", function (data) {
-  blockedSitesList = data.blockedSites || []; // Use the retrieved array or an empty array
+  blockedSitesList = data.blockedSites; // Use the retrieved array or an empty array
 });
