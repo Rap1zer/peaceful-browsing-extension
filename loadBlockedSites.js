@@ -9,7 +9,6 @@ document.addEventListener("click", (e) => {
     const regex = /^(\d+)-blocked-site$/;
     const index = e.target.id.match(regex)[1];
 
-    chrome.storage.sync.remove("blockedSites");
     // Remove the site from the blocked sites array
     blockedSitesList.splice(index, 1);
     chrome.storage.sync.set({ blockedSites: blockedSitesList });

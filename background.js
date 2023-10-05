@@ -20,8 +20,9 @@ let blockedSitesList = [
   "www.nhs.uk",
 ];
 
-//chrome.storage.sync.clear();
-//chrome.storage.sync.set({ blockedSites: blockedSitesList });
+// chrome.storage.sync.clear();
+// chrome.storage.sync.set({ blockedSites: blockedSitesList });
+// chrome.storage.sync.set({ filteredKeywords: [] });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
