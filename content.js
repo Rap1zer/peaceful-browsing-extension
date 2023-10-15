@@ -22,7 +22,7 @@ if (
     });
 
     if (isPageSensitive(keywordsToFilter)) {
-      chrome.runtime.sendMessage({ type: "blockSite" });
+      chrome.runtime.sendMessage({ type: "insertCSS" });
     }
   })();
 }

@@ -20,7 +20,10 @@ let blockedSitesList = [
   "www.nhs.uk",
 ];
 
+let isBlockerPaused = false;
+
 // chrome.storage.sync.clear();
+// chrome.storage.sync.set({ isBlockerPaused: false });
 // chrome.storage.sync.set({ blockedSites: blockedSitesList });
 // chrome.storage.sync.set({ filteredKeywords: ["rashes", "rash"] });
 
@@ -30,8 +33,16 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     blockedSitesList = data.blockedSites; // Use the retrieved array or an empty array
   });
 
+  // Check if the chrome extension is currently paused
+  await chrome.storage.sync.get("isBlockerPaused", function (data) {
+    isBlockerPaused = data.isBlockerPaused;
+  });
+
   const activeURL = new URL(tab.url);
-  if (isBlockedSite(activeURL.origin + activeURL.pathname)) {
+  if (
+    isBlockedSite(activeURL.origin + activeURL.pathname) &&
+    isBlockerPaused === false
+  ) {
     try {
       await chrome.scripting.insertCSS({
         target: {
@@ -46,11 +57,16 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  if (message.type === "blockSite") {
+  // Check if the chrome extension is currently paused
+  await chrome.storage.sync.get("isBlockerPaused", function (data) {
+    isBlockerPaused = data.isBlockerPaused;
+  });
+  if (message.type === "insertCSS" && isBlockerPaused === false) {
     const [activeTab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
+
     try {
       await chrome.scripting.insertCSS({
         target: {
@@ -60,6 +76,22 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       });
     } catch (err) {
       console.error(`failed to insert CSS: ${err}`);
+    }
+  } else if (message.type === "removeCSS") {
+    const [activeTab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    try {
+      await chrome.scripting.removeCSS({
+        target: {
+          tabId: activeTab.id,
+        },
+        files: ["blocked-style.css"],
+      });
+    } catch (err) {
+      console.error(`failed to remove CSS: ${err}`);
     }
   }
 });
