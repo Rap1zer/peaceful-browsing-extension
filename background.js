@@ -46,7 +46,7 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
 });
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  if (message.type === "insertCSS") {
+  if (message.type === "blockSite") {
     const [activeTab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,

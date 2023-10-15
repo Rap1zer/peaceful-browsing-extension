@@ -10,5 +10,7 @@ document.addEventListener("click", (e) => {
     window.location.href = "filter-keyword.html";
   } else if (e.target.id === "remove-filtered-keywords-btn") {
     window.location.href = "remove-filtered-keywords.html";
+  } else if (e.target.id === "pause-btn") {
+    window.location.href = "pause.html";
   }
 });
