@@ -23,7 +23,6 @@ if (
 
     // Select and remove search results with unwanted keywords
     const searchResults = document.querySelectorAll('[class^="g"]');
-    //console.log(searchResults);
     searchResults.forEach((result) => {
       const titleElement = result.querySelector("h3");
       if (titleElement) {
