@@ -22,7 +22,7 @@ let blockedSitesList = [
 
 // chrome.storage.sync.clear();
 // chrome.storage.sync.set({ blockedSites: blockedSitesList });
-// chrome.storage.sync.set({ filteredKeywords: [] });
+// chrome.storage.sync.set({ filteredKeywords: ["rashes", "rash"] });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
@@ -36,6 +36,25 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
       await chrome.scripting.insertCSS({
         target: {
           tabId: tabId,
+        },
+        files: ["blocked-style.css"],
+      });
+    } catch (err) {
+      console.error(`failed to insert CSS: ${err}`);
+    }
+  }
+});
+
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  if (message.type === "insertCSS") {
+    const [activeTab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    try {
+      await chrome.scripting.insertCSS({
+        target: {
+          tabId: activeTab.id,
         },
         files: ["blocked-style.css"],
       });

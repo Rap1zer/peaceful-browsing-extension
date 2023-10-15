@@ -10,7 +10,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.google.com/search*"],
+      "matches": ["<all_urls>"],
+      "exclude_matches": ["*://www.google.com/search*"],
       "js": ["content.js"]
     }
   ],
