@@ -57,7 +57,10 @@ function isPageSensitive(keywordsToFilter) {
   const metaKeywords = document.querySelector('meta[name="keywords"]');
   if (metaKeywords) {
     const keywordsContent = metaKeywords.getAttribute("content").toLowerCase();
-    if (keywordsContent.some((keyword) => keywordsContent.includes(keyword))) {
+    if (
+      keywordsContent &&
+      keywordsContent.some((keyword) => keywordsContent.includes(keyword))
+    ) {
       return true;
     }
   }
@@ -70,11 +73,25 @@ function filterPages(keywordsToFilter) {
   //Select and remove search results with unwanted keywords
   const searchResults = document.querySelectorAll('[class^="g"]');
   searchResults.forEach((result) => {
-    const titleElement = result.querySelector("h3");
-    if (titleElement) {
-      const title = titleElement.textContent.toLowerCase();
+    const titleEl = result.querySelector("h3");
+    // Check if unwanted keywords are in the title
+    if (titleEl) {
+      const title = titleEl.textContent.toLowerCase();
       if (keywordsToFilter.some((keyword) => title.includes(keyword))) {
         result.remove();
+        return;
+      }
+    }
+
+    // // Check if unwanted keywords are in the description
+    const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
+    if (descriptionDiv) {
+      // Get the description from the descriptionDiv
+      const description = descriptionDiv.textContent.toLowerCase();
+      // Check if unwanted keywords are in the description
+      if (keywordsToFilter.some((keyword) => description.includes(keyword))) {
+        result.remove();
+        return;
       }
     }
   });
