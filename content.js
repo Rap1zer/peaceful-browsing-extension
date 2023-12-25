@@ -24,6 +24,18 @@ console.log("injected");
   ) {
     // Filter the search results for triggering content
     filterPages(keywordsToFilter);
+
+    // Create a new MutationObserver with a callback function
+    // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
+    const observer = new MutationObserver(function () {
+      console.log("mutated");
+      filterPages(keywordsToFilter);
+    });
+
+    const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
+    const config = { childList: true, subtree: true };
+
+    observer.observe(targetNode, config);
   } else {
     // Check if current webpage has triggering content
     if (isPageSensitive(keywordsToFilter)) {
@@ -73,9 +85,20 @@ function filterPages(keywordsToFilter) {
   //Select and remove search results with unwanted keywords
   const searchResults = document.querySelectorAll('[class^="g"]');
   searchResults.forEach((result) => {
+    // Check whehter the object is a safe site
+    if (result.classList.contains("safe-site")) {
+      console.log(result);
+      console.log("a safe site");
+      return;
+    }
+
+    // Bool which checks whether an object selected is a search result leading to a site.
+    let isSearchResult = false;
+
     const titleEl = result.querySelector("h3");
     // Check if unwanted keywords are in the title
     if (titleEl) {
+      isSearchResult = true;
       const title = titleEl.textContent.toLowerCase();
       if (keywordsToFilter.some((keyword) => title.includes(keyword))) {
         result.remove();
@@ -83,9 +106,10 @@ function filterPages(keywordsToFilter) {
       }
     }
 
-    // // Check if unwanted keywords are in the description
+    // Check if unwanted keywords are in the description
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
+      isSearchResult = true;
       // Get the description from the descriptionDiv
       const description = descriptionDiv.textContent.toLowerCase();
       // Check if unwanted keywords are in the description
@@ -94,17 +118,10 @@ function filterPages(keywordsToFilter) {
         return;
       }
     }
+
+    // If it is a search result and it does not have any unwanted keywords, add a class marking it as a "safe-site"
+    if (isSearchResult) {
+      result.classList.add("safe-site");
+    }
   });
 }
-
-// Create a new MutationObserver with a callback function
-// The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
-const observer = new MutationObserver(function () {
-  console.log("mutated");
-  filterPages(keywordsToFilter);
-});
-
-const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
-const config = { childList: true, subtree: true };
-
-observer.observe(targetNode, config);
