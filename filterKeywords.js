@@ -11,7 +11,7 @@ filterKeywordBtn.addEventListener("click", () => {
   chrome.storage.sync.get("filteredKeywords", function (data) {
     const keyword = keywordInput.value.trim().toLowerCase();
 
-    // Do not filter keyword if the keyword is already in the list
+    // Do not add keyword to list if keyword is already in list.
     if (data.filteredKeywords.includes(keyword)) {
       return;
     }

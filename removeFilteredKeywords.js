@@ -22,8 +22,8 @@ function loadFilteredKeywords() {
   // Fetch the filtered keywords array from chrome.storage
   chrome.storage.sync.get("filteredKeywords", function (data) {
     filteredKeywords = data.filteredKeywords;
-    // Add every blocked site into a list
-    for (let i = 0; i < filteredKeywords.length; i++) {
+    // Add the first 10 filtered keywords into a list
+    for (let i = 0; i < 10; i++) {
       filteredKeywordsUl.innerHTML += `<li>${filteredKeywords[i]} <button id="${i}-filtered-keyword"><i class="fa-solid fa-trash" id="${i}-filtered-keyword"></i></button> </li>`;
     }
   });
