@@ -82,7 +82,7 @@ function filterPages(keywordsToFilter) {
 
 // Create a new MutationObserver with a callback function
 // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
-const observer = new MutationObserver(function (mutationList) {
+const observer = new MutationObserver(function () {
   console.log("mutated");
   filterPages(keywordsToFilter);
 });
