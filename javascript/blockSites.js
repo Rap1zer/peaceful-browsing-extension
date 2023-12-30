@@ -36,7 +36,7 @@ blockThisSiteBtn.addEventListener("click", async () => {
   });
 
   // Redirect the current page to "main.html".
-  window.location.href = "main.html";
+  window.location.href = "../main.html";
   // Reload the active tab
   chrome.tabs.reload();
 });
@@ -61,5 +61,5 @@ blockCustomSiteBtn.addEventListener("click", async () => {
 });
 
 searchSitePageBtn.addEventListener("click", () => {
-  window.location.href = "search-blocked-sites.html";
+  window.location.href = "../search-blocked-sites.html";
 });
