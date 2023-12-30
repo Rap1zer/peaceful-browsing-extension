@@ -2,6 +2,7 @@ const pathSlider = document.getElementById("path-slider");
 const blockCustomSiteBtn = document.getElementById("block-custom-site");
 const siteInput = document.getElementById("site-input");
 const blockThisSiteBtn = document.getElementById("block-this-site");
+const searchSitePageBtn = document.getElementById("search-blocked-sites-btn");
 const pagePathEl = document.getElementById("page-path"); // Displays the path of the webpage
 let url;
 let pathSegments = [];
@@ -47,7 +48,7 @@ pathSlider.addEventListener("input", () => {
   }
 });
 
-/*blockCustomSiteBtn.addEventListener("click", async () => {
+blockCustomSiteBtn.addEventListener("click", async () => {
   siteInput.value.trim();
   if (siteInput.value) {
     await chrome.storage.sync.get("blockedSites", async function (data) {
@@ -57,4 +58,8 @@ pathSlider.addEventListener("input", () => {
     });
     siteInput.value = "";
   }
-});*/
+});
+
+searchSitePageBtn.addEventListener("click", () => {
+  window.location.href = "search-blocked-sites.html";
+});

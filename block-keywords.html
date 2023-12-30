@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Filter a Keyword</title>
-    <script src="filterKeywords.js" defer></script>
-    <script src="removeFilteredKeywords.js" defer></script>
+    <title>block a Keyword</title>
+    <script src="blockKeywords.js" defer></script>
+    <script src="searchblockedKeywords.js" defer></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -13,11 +13,11 @@
   </head>
   <body>
     <p>
-      Filter a keyword so search results and webpages containing this keyword in
+      Block a keyword so search results and webpages containing this keyword in
       the title or description will not be displayed
     </p>
     <input type="text" id="keyword-input" />
-    <button id="filter-this-keyword-btn">Filter this keyword</button>
+    <button id="block-this-keyword-btn">Block this keyword</button>
     <ul id="blocked-list"></ul>
     <button>
       <a href="main.html">Go Back</a>
