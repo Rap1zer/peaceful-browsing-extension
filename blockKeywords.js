@@ -1,5 +1,5 @@
-const keywordInput = document.getElementById("keyword-input");
-const blockKeywordBtn = document.getElementById("block-this-keyword-btn");
+const keywordInput = document.getElementById("new-keyword-input");
+const blockKeywordBtn = document.getElementById("block-new-keyword-btn");
 
 blockKeywordBtn.addEventListener("click", () => {
   // Do not block keyword if the keyword input field is empty (there is no keyword)

@@ -1,4 +1,4 @@
-const blockedKeywordsUl = document.getElementById("blocked-list");
+const blockedKeywordsUl = document.getElementById("blocked-keywords-list");
 let blockedKeywords = [];
 
 // Listen for button clicks

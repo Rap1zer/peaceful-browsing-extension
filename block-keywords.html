@@ -12,13 +12,19 @@
     />
   </head>
   <body>
+    <button class="exit-btn">X</button>
     <p>
       Block a keyword so search results and webpages containing this keyword in
       the title or description will not be displayed
     </p>
-    <input type="text" id="keyword-input" />
-    <button id="block-this-keyword-btn">Block this keyword</button>
-    <ul id="blocked-list"></ul>
+    <input type="text" id="new-keyword-input" />
+    <button id="block-new-keyword-btn">Block</button>
+
+    <div class="keyword-search-container">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="keyword-search-input" />
+      <ul id="blocked-keywords-list"></ul>
+    </div>
     <button>
       <a href="main.html">Go Back</a>
     </button>

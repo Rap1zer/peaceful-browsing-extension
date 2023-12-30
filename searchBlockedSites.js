@@ -1,4 +1,4 @@
-const blockedUl = document.getElementById("blocked-list");
+const blockedUl = document.getElementById("blocked-sites-list");
 let blockedSitesList = [];
 
 // Listen for button clicks
