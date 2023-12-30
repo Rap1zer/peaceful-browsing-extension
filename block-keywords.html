@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Filter a Keyword</title>
     <script src="filterKeywords.js" defer></script>
+    <script src="removeFilteredKeywords.js" defer></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
   </head>
   <body>
     <p>
@@ -13,6 +18,7 @@
     </p>
     <input type="text" id="keyword-input" />
     <button id="filter-this-keyword-btn">Filter this keyword</button>
+    <ul id="blocked-list"></ul>
     <button>
       <a href="main.html">Go Back</a>
     </button>

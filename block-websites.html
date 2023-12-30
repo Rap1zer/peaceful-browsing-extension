@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Block a site</title>
     <script src="block.js" defer></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
   </head>
   <body>
     <p>Pages with this URL will not run:</p>
     <p id="page-path">NAME OF SITE</p>
     <input type="range" id="path-slider" />
     <button id="block-this-site">Block this site</button>
-    <!-- <input
+    <input
       type="text"
       id="site-input"
       placeholder="Enter a website host name to block"
     />
-    <button id="block-custom-site">Block site</button> -->
+    <button id="block-custom-site">Block site</button>
     <button>
       <a href="main.html">Go Back</a>
     </button>
