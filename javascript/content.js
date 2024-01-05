@@ -1,55 +1,57 @@
-let keywordsToFilter;
+let blockedKeywords;
 console.log("injected");
 
-(async () => {
-  // List of keywords to filter out.
-  // Create a Promise to wrap the chrome.storage.sync.get operation.
-  keywordsToFilter = await new Promise((resolve, reject) => {
-    // Use chrome.storage.sync.get to retrieve the filtered keywords.
-    chrome.storage.sync.get("filteredKeywords", async function (data) {
+// Retrieves the blocked keywords from chrome.storage.sync.
+function getBlockedKeywords() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get("blockedKeywords", function (data) {
       if (chrome.runtime.lastError) {
-        // If there is an error, reject the Promise with the error.
         reject(chrome.runtime.lastError);
       } else {
-        // If the filtered keywords is successfully retrieved, resolve the Promise with the data.
-        resolve(data.filteredKeywords);
+        resolve(data.blockedKeywords);
       }
     });
   });
+}
 
-  // Check if the current page is a Google Search page
-  if (
-    window.location.hostname == "www.google.com" &&
-    window.location.pathname == "/search"
-  ) {
-    // Filter the search results for triggering content
-    filterPages(keywordsToFilter);
+// Check if the current page is a Google Search page
+if (
+  window.location.hostname == "www.google.com" &&
+  window.location.pathname == "/search"
+) {
+  // Filter the search results for triggering content
+  filterPages(blockedKeywords);
 
-    // Create a new MutationObserver with a callback function
-    // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
-    const observer = new MutationObserver(function () {
-      console.log("mutated");
-      filterPages(keywordsToFilter);
-    });
+  // Create a new MutationObserver with a callback function
+  // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
+  const observer = new MutationObserver(function () {
+    console.log("mutated");
+    filterPages(blockedKeywords);
+  });
 
-    const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
-    const config = { childList: true, subtree: true };
+  const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
+  const config = { childList: true, subtree: true };
 
-    observer.observe(targetNode, config);
-  } else {
-    // Check if current webpage has triggering content
-    if (isPageSensitive(keywordsToFilter)) {
-      chrome.runtime.sendMessage({ type: "insertCSS" });
-    }
+  observer.observe(targetNode, config);
+} else {
+  // Check if current webpage has triggering content
+  if (isPageSensitive()) {
+    chrome.runtime.sendMessage({ type: "insertCSS" });
   }
-})();
+}
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
-function isPageSensitive(keywordsToFilter) {
+async function isPageSensitive() {
+  try {
+    blockedKeywords = await getBlockedKeywords();
+  } catch (error) {
+    console.log(error);
+  }
+
   const title = document.querySelector("title");
   if (title) {
     const titleText = title.textContent.toLowerCase();
-    if (keywordsToFilter.some((keyword) => titleText.includes(keyword))) {
+    if (blockedKeywords.some((keyword) => titleText.includes(keyword))) {
       return true;
     }
   }
@@ -60,7 +62,7 @@ function isPageSensitive(keywordsToFilter) {
       .getAttribute("content")
       .toLowerCase();
     if (
-      keywordsToFilter.some((keyword) => descriptionContent.includes(keyword))
+      blockedKeywords.some((keyword) => descriptionContent.includes(keyword))
     ) {
       return true;
     }
@@ -69,10 +71,7 @@ function isPageSensitive(keywordsToFilter) {
   const metaKeywords = document.querySelector('meta[name="keywords"]');
   if (metaKeywords) {
     const keywordsContent = metaKeywords.getAttribute("content").toLowerCase();
-    if (
-      keywordsContent &&
-      keywordsContent.some((keyword) => keywordsContent.includes(keyword))
-    ) {
+    if (keywordsContent.some((keyword) => keywordsContent.includes(keyword))) {
       return true;
     }
   }
@@ -81,14 +80,18 @@ function isPageSensitive(keywordsToFilter) {
 }
 
 // Filter search results with unwanted keywords.
-function filterPages(keywordsToFilter) {
+async function filterPages(blockedKeywords) {
+  try {
+    blockedKeywords = await getBlockedKeywords();
+  } catch (error) {
+    console.log(error);
+  }
+
   //Select and remove search results with unwanted keywords
   const searchResults = document.querySelectorAll('[class^="g"]');
   searchResults.forEach((result) => {
     // Check whehter the object is a safe site
     if (result.classList.contains("safe-site")) {
-      console.log(result);
-      console.log("a safe site");
       return;
     }
 
@@ -100,7 +103,7 @@ function filterPages(keywordsToFilter) {
     if (titleEl) {
       isSearchResult = true;
       const title = titleEl.textContent.toLowerCase();
-      if (keywordsToFilter.some((keyword) => title.includes(keyword))) {
+      if (blockedKeywords.some((keyword) => title.includes(keyword))) {
         result.remove();
         return;
       }
@@ -113,7 +116,7 @@ function filterPages(keywordsToFilter) {
       // Get the description from the descriptionDiv
       const description = descriptionDiv.textContent.toLowerCase();
       // Check if unwanted keywords are in the description
-      if (keywordsToFilter.some((keyword) => description.includes(keyword))) {
+      if (blockedKeywords.some((keyword) => description.includes(keyword))) {
         result.remove();
         return;
       }

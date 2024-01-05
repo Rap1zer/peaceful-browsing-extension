@@ -1,5 +1,3 @@
-console.log("hi");
-
 document.addEventListener("click", (e) => {
   switch (e.target.id) {
     case "websites-btn":

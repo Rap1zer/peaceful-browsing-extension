@@ -21,5 +21,7 @@ blockKeywordBtn.addEventListener("click", () => {
     console.log(data.blockedKeywords);
     // Update the chrome storage
     chrome.storage.sync.set({ blockedKeywords: data.blockedKeywords });
+    // Return to main page
+    window.location.href = "../main.html";
   });
 });

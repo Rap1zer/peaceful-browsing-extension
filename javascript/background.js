@@ -25,7 +25,7 @@ let isBlockerPaused = false;
 // chrome.storage.sync.clear();
 // chrome.storage.sync.set({ isBlockerPaused: false });
 // chrome.storage.sync.set({ blockedSites: blockedSitesList });
-// chrome.storage.sync.set({ filteredKeywords: ["rashes", "rash"] });
+// chrome.storage.sync.set({ blockedKeywords: ["rashes", "rash"] });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
@@ -39,16 +39,18 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   });
 
   const activeURL = new URL(tab.url);
+  // Checks if the site is among the list of blocked webistes
   if (
     isBlockedSite(activeURL.origin + activeURL.pathname) &&
     isBlockerPaused === false
   ) {
+    console.log("is a blocked website");
     try {
       await chrome.scripting.insertCSS({
         target: {
           tabId: tabId,
         },
-        files: ["blocked-style.css"],
+        files: ["styling/blocked-style.css"],
       });
     } catch (err) {
       console.error(`failed to insert CSS: ${err}`);
@@ -61,6 +63,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   await chrome.storage.sync.get("isBlockerPaused", function (data) {
     isBlockerPaused = data.isBlockerPaused;
   });
+
   if (message.type === "insertCSS" && isBlockerPaused === false) {
     const [activeTab] = await chrome.tabs.query({
       active: true,
@@ -72,7 +75,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         target: {
           tabId: activeTab.id,
         },
-        files: ["blocked-style.css"],
+        files: ["styling/blocked-style.css"],
       });
     } catch (err) {
       console.error(`failed to insert CSS: ${err}`);
@@ -88,7 +91,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         target: {
           tabId: activeTab.id,
         },
-        files: ["blocked-style.css"],
+        files: ["styling/blocked-style.css"],
       });
     } catch (err) {
       console.error(`failed to remove CSS: ${err}`);
