@@ -33,11 +33,9 @@ if (
   const config = { childList: true, subtree: true };
 
   observer.observe(targetNode, config);
-} else {
+} else if (isPageSensitive() === true) {
   // Check if current webpage has triggering content
-  if (isPageSensitive()) {
-    chrome.runtime.sendMessage({ type: "insertCSS" });
-  }
+  chrome.runtime.sendMessage({ type: "insertCSS" });
 }
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
@@ -52,6 +50,7 @@ async function isPageSensitive() {
   if (title) {
     const titleText = title.textContent.toLowerCase();
     if (blockedKeywords.some((keyword) => titleText.includes(keyword))) {
+      console.log("title has blocked keyword");
       return true;
     }
   }
@@ -64,18 +63,24 @@ async function isPageSensitive() {
     if (
       blockedKeywords.some((keyword) => descriptionContent.includes(keyword))
     ) {
+      console.log("meta description has blocked keyword");
       return true;
     }
   }
 
   const metaKeywords = document.querySelector('meta[name="keywords"]');
   if (metaKeywords) {
-    const keywordsContent = metaKeywords.getAttribute("content").toLowerCase();
-    if (keywordsContent.some((keyword) => keywordsContent.includes(keyword))) {
+    const keywordsContent = metaKeywords
+      .getAttribute("content")
+      .toLowerCase()
+      .split(",");
+    if (blockedKeywords.some((keyword) => keywordsContent.includes(keyword))) {
+      console.log("meta keywords has blocked keyword");
       return true;
     }
   }
 
+  console.log("page is not sensitive");
   return false;
 }
 
@@ -104,6 +109,7 @@ async function filterPages(blockedKeywords) {
       isSearchResult = true;
       const title = titleEl.textContent.toLowerCase();
       if (blockedKeywords.some((keyword) => title.includes(keyword))) {
+        console.log("search result title has blocked keyword");
         result.remove();
         return;
       }
@@ -117,6 +123,7 @@ async function filterPages(blockedKeywords) {
       const description = descriptionDiv.textContent.toLowerCase();
       // Check if unwanted keywords are in the description
       if (blockedKeywords.some((keyword) => description.includes(keyword))) {
+        console.log("search result description has blocked keyword");
         result.remove();
         return;
       }

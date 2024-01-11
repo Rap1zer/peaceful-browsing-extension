@@ -22,10 +22,10 @@ let blockedSitesList = [
 
 let isBlockerPaused = false;
 
-// chrome.storage.sync.clear();
-// chrome.storage.sync.set({ isBlockerPaused: false });
-// chrome.storage.sync.set({ blockedSites: blockedSitesList });
-// chrome.storage.sync.set({ blockedKeywords: ["rashes", "rash"] });
+chrome.storage.sync.clear();
+chrome.storage.sync.set({ isBlockerPaused: false });
+chrome.storage.sync.set({ blockedSites: blockedSitesList });
+chrome.storage.sync.set({ blockedKeywords: [] });
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
