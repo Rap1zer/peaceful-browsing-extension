@@ -30,4 +30,4 @@ function loadblockedKeywords() {
   });
 }
 
-loadblockedKeywords();
+//loadblockedKeywords();

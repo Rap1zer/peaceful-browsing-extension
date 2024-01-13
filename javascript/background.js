@@ -21,11 +21,26 @@ let blockedSitesList = [
 ];
 
 let isBlockerPaused = false;
+let keywordData;
+fetchJsonData();
 
-chrome.storage.sync.clear();
-chrome.storage.sync.set({ isBlockerPaused: false });
-chrome.storage.sync.set({ blockedSites: blockedSitesList });
-chrome.storage.sync.set({ blockedKeywords: [] });
+// chrome.storage.sync.clear();
+// chrome.storage.sync.set({ isBlockerPaused: false });
+// chrome.storage.sync.set({ blockedSites: blockedSitesList });
+
+async function fetchJsonData() {
+  try {
+    const response = await fetch("../medicinenet-diseases.json");
+    const data = await response.json();
+    keywordData = data.map((entry) => entry.disease.toLowerCase());
+    //keywordData = new Set(data.map((entry) => entry.disease));
+    console.log(keywordData);
+    //chrome.storage.sync.set({ blockedKeywords: keywordData });
+  } catch (error) {
+    console.error("Error fetching JSON data:", error);
+    throw error;
+  }
+}
 
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   // Fetch the stored URLs array from chrome.storage
@@ -58,44 +73,52 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   }
 });
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  // Check if the chrome extension is currently paused
-  await chrome.storage.sync.get("isBlockerPaused", function (data) {
-    isBlockerPaused = data.isBlockerPaused;
-  });
-
-  if (message.type === "insertCSS" && isBlockerPaused === false) {
-    const [activeTab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // All asynchronous messages are handled in this anonymous function
+  (async () => {
+    //Check if the chrome extension is currently paused
+    await chrome.storage.sync.get("isBlockerPaused", function (data) {
+      isBlockerPaused = data.isBlockerPaused;
     });
 
-    try {
-      await chrome.scripting.insertCSS({
-        target: {
-          tabId: activeTab.id,
-        },
-        files: ["styling/blocked-style.css"],
+    if (message.type === "insertCSS" && isBlockerPaused === false) {
+      const [activeTab] = chrome.tabs.query({
+        active: true,
+        currentWindow: true,
       });
-    } catch (err) {
-      console.error(`failed to insert CSS: ${err}`);
-    }
-  } else if (message.type === "removeCSS") {
-    const [activeTab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
 
-    try {
-      await chrome.scripting.removeCSS({
-        target: {
-          tabId: activeTab.id,
-        },
-        files: ["styling/blocked-style.css"],
+      try {
+        chrome.scripting.insertCSS({
+          target: {
+            tabId: activeTab.id,
+          },
+          files: ["styling/blocked-style.css"],
+        });
+      } catch (err) {
+        console.error(`failed to insert CSS: ${err}`);
+      }
+    } else if (message.type === "removeCSS") {
+      const [activeTab] = chrome.tabs.query({
+        active: true,
+        currentWindow: true,
       });
-    } catch (err) {
-      console.error(`failed to remove CSS: ${err}`);
+
+      try {
+        chrome.scripting.removeCSS({
+          target: {
+            tabId: activeTab.id,
+          },
+          files: ["styling/blocked-style.css"],
+        });
+      } catch (err) {
+        console.error(`failed to remove CSS: ${err}`);
+      }
     }
+  })();
+
+  if (message.data === "fetchBlockedKeywords") {
+    console.log("received request to fetch blocked keywords");
+    sendResponse(keywordData);
   }
 });
 

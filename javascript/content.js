@@ -4,13 +4,16 @@ console.log("injected");
 // Retrieves the blocked keywords from chrome.storage.sync.
 function getBlockedKeywords() {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("blockedKeywords", function (data) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(data.blockedKeywords);
+    chrome.runtime.sendMessage(
+      { data: "fetchBlockedKeywords" },
+      function (blockedKeywords) {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(blockedKeywords);
+        }
       }
-    });
+    );
   });
 }
 
@@ -107,14 +110,15 @@ async function filterPages(blockedKeywords) {
     // Check if unwanted keywords are in the title
     if (titleEl) {
       isSearchResult = true;
-      const title = titleEl.textContent.toLowerCase();
-      if (blockedKeywords.some((keyword) => title.includes(keyword))) {
+      const title = titleEl.textContent.toLowerCase().split(" ");
+      if (title.some((word) => blockedKeywords.includes(word))) {
         console.log("search result title has blocked keyword");
         result.remove();
         return;
       }
     }
 
+    // !!!DESCRIPTION.INCLUDES COULD LEAD TO SOME FALSE POSITIVES (a bigger word could have a substring which is in the list of triggering diseases)
     // Check if unwanted keywords are in the description
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
@@ -124,6 +128,21 @@ async function filterPages(blockedKeywords) {
       // Check if unwanted keywords are in the description
       if (blockedKeywords.some((keyword) => description.includes(keyword))) {
         console.log("search result description has blocked keyword");
+        result.remove();
+        return;
+      }
+    }
+
+    // !!!DESCRIPTION.INCLUDES COULD LEAD TO SOME FALSE POSITIVES (a bigger word could have a substring which is in the list of triggering diseases)
+    // Check if unwanted keywords are in the description of the main result
+    const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
+    if (mainResultDescriptionDiv) {
+      isSearchResult = true;
+      // Get the description from the descriptionDiv
+      const description = mainResultDescriptionDiv.textContent.toLowerCase();
+      // Check if unwanted keywords are in the description
+      if (blockedKeywords.some((keyword) => description.includes(keyword))) {
+        console.log("main search result description has blocked keyword");
         result.remove();
         return;
       }
