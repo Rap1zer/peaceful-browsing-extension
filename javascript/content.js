@@ -36,9 +36,13 @@ if (
   const config = { childList: true, subtree: true };
 
   observer.observe(targetNode, config);
-} else if (isPageSensitive() === true) {
-  // Check if current webpage has triggering content
-  chrome.runtime.sendMessage({ type: "insertCSS" });
+} else {
+  (async () => {
+    // Check if current webpage has triggering content
+    if ((await isPageSensitive()) === true) {
+      chrome.runtime.sendMessage({ type: "insertCSS" });
+    }
+  })();
 }
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
@@ -51,22 +55,13 @@ async function isPageSensitive() {
 
   const title = document.querySelector("title");
   if (title) {
-    const titleText = title.textContent.toLowerCase();
-    if (blockedKeywords.some((keyword) => titleText.includes(keyword))) {
+    const titleText = title.textContent
+      .toLowerCase()
+      .split(" ") // Split text content into an array of words
+      .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
+    if (titleText.some((keyword) => blockedKeywords.includes(keyword))) {
       console.log("title has blocked keyword");
-      return true;
-    }
-  }
-
-  const metaDescription = document.querySelector('meta[name="description"]');
-  if (metaDescription) {
-    const descriptionContent = metaDescription
-      .getAttribute("content")
-      .toLowerCase();
-    if (
-      blockedKeywords.some((keyword) => descriptionContent.includes(keyword))
-    ) {
-      console.log("meta description has blocked keyword");
+      console.log(titleText);
       return true;
     }
   }
@@ -76,9 +71,24 @@ async function isPageSensitive() {
     const keywordsContent = metaKeywords
       .getAttribute("content")
       .toLowerCase()
-      .split(",");
-    if (blockedKeywords.some((keyword) => keywordsContent.includes(keyword))) {
+      .split(","); // Split text content into an array of keywords
+    if (keywordsContent.some((keyword) => blockedKeywords.includes(keyword))) {
       console.log("meta keywords has blocked keyword");
+      return true;
+    }
+  }
+
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    const descriptionContent = metaDescription
+      .getAttribute("content")
+      .toLowerCase()
+      .split(" ") // Split text content into an array of words
+      .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
+    if (
+      descriptionContent.some((keyword) => blockedKeywords.includes(keyword))
+    ) {
+      console.log("meta description has blocked keyword");
       return true;
     }
   }
@@ -110,7 +120,10 @@ async function filterPages(blockedKeywords) {
     // Check if unwanted keywords are in the title
     if (titleEl) {
       isSearchResult = true;
-      const title = titleEl.textContent.toLowerCase().split(" ");
+      const title = titleEl.textContent
+        .toLowerCase()
+        .split(" ") // Split text content into an array of words
+        .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
       if (title.some((word) => blockedKeywords.includes(word))) {
         console.log("search result title has blocked keyword");
         result.remove();
@@ -118,30 +131,34 @@ async function filterPages(blockedKeywords) {
       }
     }
 
-    // !!!DESCRIPTION.INCLUDES COULD LEAD TO SOME FALSE POSITIVES (a bigger word could have a substring which is in the list of triggering diseases)
     // Check if unwanted keywords are in the description
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
       isSearchResult = true;
       // Get the description from the descriptionDiv
-      const description = descriptionDiv.textContent.toLowerCase();
+      const description = descriptionDiv.textContent
+        .toLowerCase()
+        .split(" ") // Split text content into an array of words
+        .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
       // Check if unwanted keywords are in the description
-      if (blockedKeywords.some((keyword) => description.includes(keyword))) {
+      if (description.some((keyword) => blockedKeywords.includes(keyword))) {
         console.log("search result description has blocked keyword");
         result.remove();
         return;
       }
     }
 
-    // !!!DESCRIPTION.INCLUDES COULD LEAD TO SOME FALSE POSITIVES (a bigger word could have a substring which is in the list of triggering diseases)
     // Check if unwanted keywords are in the description of the main result
     const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
     if (mainResultDescriptionDiv) {
       isSearchResult = true;
       // Get the description from the descriptionDiv
-      const description = mainResultDescriptionDiv.textContent.toLowerCase();
+      const description = mainResultDescriptionDiv.textContent
+        .toLowerCase()
+        .split(" ") // Split text content into an array of words
+        .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
       // Check if unwanted keywords are in the description
-      if (blockedKeywords.some((keyword) => description.includes(keyword))) {
+      if (description.some((keyword) => blockedKeywords.includes(keyword))) {
         console.log("main search result description has blocked keyword");
         result.remove();
         return;

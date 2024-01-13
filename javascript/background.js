@@ -76,13 +76,16 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // All asynchronous messages are handled in this anonymous function
   (async () => {
+    console.log(message.type);
     //Check if the chrome extension is currently paused
     await chrome.storage.sync.get("isBlockerPaused", function (data) {
       isBlockerPaused = data.isBlockerPaused;
     });
 
+    // Insert CSS into a webpage
     if (message.type === "insertCSS" && isBlockerPaused === false) {
-      const [activeTab] = chrome.tabs.query({
+      console.log("Sent from tab:", sender.tab);
+      const [activeTab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
@@ -98,7 +101,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.error(`failed to insert CSS: ${err}`);
       }
     } else if (message.type === "removeCSS") {
-      const [activeTab] = chrome.tabs.query({
+      // Remove CSS from a webpage
+      const [activeTab] = await chrome.tabs.query({
         active: true,
         currentWindow: true,
       });
@@ -117,7 +121,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   })();
 
   if (message.data === "fetchBlockedKeywords") {
-    console.log("received request to fetch blocked keywords");
     sendResponse(keywordData);
   }
 });
