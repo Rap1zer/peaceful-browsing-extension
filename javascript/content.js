@@ -5,7 +5,7 @@ console.log("injected");
 function getBlockedKeywords() {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(
-      { data: "fetchBlockedKeywords" },
+      { type: "fetchBlockedKeywords" },
       function (blockedKeywords) {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
@@ -38,7 +38,13 @@ if (
   observer.observe(targetNode, config);
 } else {
   (async () => {
-    // Check if current webpage has triggering content
+    // Check if the webpage is among the list of blocked URLs
+    chrome.runtime.sendMessage({
+      type: "checkIfHostnameIsBlocked",
+      data: window.location.href,
+    });
+
+    // Check if current webpage contains triggering keywords
     if ((await isPageSensitive()) === true) {
       chrome.runtime.sendMessage({ type: "insertCSS" });
     }
@@ -60,7 +66,10 @@ async function isPageSensitive() {
       .split(" ") // Split text content into an array of words
       .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
     if (titleText.some((keyword) => blockedKeywords.includes(keyword))) {
-      console.log("title has blocked keyword");
+      console.log(
+        "title has blocked keyword: " +
+          titleText.find((keyword) => blockedKeywords.includes(keyword))
+      );
       console.log(titleText);
       return true;
     }
@@ -73,7 +82,11 @@ async function isPageSensitive() {
       .toLowerCase()
       .split(","); // Split text content into an array of keywords
     if (keywordsContent.some((keyword) => blockedKeywords.includes(keyword))) {
-      console.log("meta keywords has blocked keyword");
+      console.log(
+        "meta keywords has blocked keyword: " +
+          keywordsContent.find((keyword) => blockedKeywords.includes(keyword))
+      );
+      console.log(metaKeywords);
       return true;
     }
   }
@@ -88,7 +101,13 @@ async function isPageSensitive() {
     if (
       descriptionContent.some((keyword) => blockedKeywords.includes(keyword))
     ) {
-      console.log("meta description has blocked keyword");
+      console.log(
+        "meta description has blocked keyword: " +
+          descriptionContent.find((keyword) =>
+            blockedKeywords.includes(keyword)
+          )
+      );
+      console.log(descriptionContent);
       return true;
     }
   }
@@ -108,7 +127,7 @@ async function filterPages(blockedKeywords) {
   //Select and remove search results with unwanted keywords
   const searchResults = document.querySelectorAll('[class^="g"]');
   searchResults.forEach((result) => {
-    // Check whehter the object is a safe site
+    // Check whether the object is a safe site
     if (result.classList.contains("safe-site")) {
       return;
     }
@@ -125,7 +144,10 @@ async function filterPages(blockedKeywords) {
         .split(" ") // Split text content into an array of words
         .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
       if (title.some((word) => blockedKeywords.includes(word))) {
-        console.log("search result title has blocked keyword");
+        console.log(
+          "search result title has blocked keyword: " +
+            title.find((keyword) => blockedKeywords.includes(keyword))
+        );
         result.remove();
         return;
       }
@@ -142,7 +164,10 @@ async function filterPages(blockedKeywords) {
         .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
       // Check if unwanted keywords are in the description
       if (description.some((keyword) => blockedKeywords.includes(keyword))) {
-        console.log("search result description has blocked keyword");
+        console.log(
+          "search result description has blocked keyword: " +
+            description.find((keyword) => blockedKeywords.includes(keyword))
+        );
         result.remove();
         return;
       }
@@ -159,7 +184,10 @@ async function filterPages(blockedKeywords) {
         .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
       // Check if unwanted keywords are in the description
       if (description.some((keyword) => blockedKeywords.includes(keyword))) {
-        console.log("main search result description has blocked keyword");
+        console.log(
+          "main search result description has blocked keyword: " +
+            description.find((keyword) => blockedKeywords.includes(keyword))
+        );
         result.remove();
         return;
       }

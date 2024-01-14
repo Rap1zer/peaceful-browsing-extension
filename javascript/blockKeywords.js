@@ -9,7 +9,7 @@ blockKeywordBtn.addEventListener("click", () => {
 
   // Fetch blocked keywords from background.js and add the keyword to the set
   chrome.runtime.sendMessage(
-    { data: "fetchBlockedKeywords" },
+    { type: "fetchBlockedKeywords" },
     function (blockedKeywords) {
       const keyword = keywordInput.value.trim().toLowerCase();
 

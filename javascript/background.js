@@ -1,4 +1,6 @@
-let blockedSitesList = [
+let stylingForBlockedSites = "styling/blocked-style.css";
+
+let blockedHostnames = [
   "www.epocrates.com",
   "www.everydayhealth.com",
   "www.healthline.com",
@@ -26,8 +28,9 @@ fetchJsonData();
 
 // chrome.storage.sync.clear();
 // chrome.storage.sync.set({ isBlockerPaused: false });
-// chrome.storage.sync.set({ blockedSites: blockedSitesList });
+// chrome.storage.sync.set({ blockedSites: blockedHostnames });
 
+// DOES NOT WORK IF AN ELEMENT HAS MORE THAN ONE WORK (E.G. FIFTH'S DISEASE)
 async function fetchJsonData() {
   try {
     const response = await fetch("../medicinenet-diseases.json");
@@ -35,48 +38,14 @@ async function fetchJsonData() {
     keywordData = data.map((entry) => entry.disease.toLowerCase());
     //keywordData = new Set(data.map((entry) => entry.disease));
     console.log(keywordData);
-    //chrome.storage.sync.set({ blockedKeywords: keywordData });
   } catch (error) {
     console.error("Error fetching JSON data:", error);
-    throw error;
   }
 }
-
-chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
-  // Fetch the stored URLs array from chrome.storage
-  await chrome.storage.sync.get("blockedSites", function (data) {
-    blockedSitesList = data.blockedSites; // Use the retrieved array or an empty array
-  });
-
-  // Check if the chrome extension is currently paused
-  await chrome.storage.sync.get("isBlockerPaused", function (data) {
-    isBlockerPaused = data.isBlockerPaused;
-  });
-
-  const activeURL = new URL(tab.url);
-  // Checks if the site is among the list of blocked webistes
-  if (
-    isBlockedSite(activeURL.origin + activeURL.pathname) &&
-    isBlockerPaused === false
-  ) {
-    console.log("is a blocked website");
-    try {
-      await chrome.scripting.insertCSS({
-        target: {
-          tabId: tabId,
-        },
-        files: ["styling/blocked-style.css"],
-      });
-    } catch (err) {
-      console.error(`failed to insert CSS: ${err}`);
-    }
-  }
-});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // All asynchronous messages are handled in this anonymous function
   (async () => {
-    console.log(message.type);
     //Check if the chrome extension is currently paused
     await chrome.storage.sync.get("isBlockerPaused", function (data) {
       isBlockerPaused = data.isBlockerPaused;
@@ -85,51 +54,80 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Insert CSS into a webpage
     if (message.type === "insertCSS" && isBlockerPaused === false) {
       console.log("Sent from tab:", sender.tab);
-      const [activeTab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
+      const [activeTab] = await getActiveTab();
 
+      // Try to insert CSS
       try {
         chrome.scripting.insertCSS({
           target: {
             tabId: activeTab.id,
           },
-          files: ["styling/blocked-style.css"],
+          files: [stylingForBlockedSites],
         });
       } catch (err) {
         console.error(`failed to insert CSS: ${err}`);
       }
     } else if (message.type === "removeCSS") {
       // Remove CSS from a webpage
-      const [activeTab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
+      const [activeTab] = await getActiveTab();
 
+      // Try to remove CSS
       try {
         chrome.scripting.removeCSS({
           target: {
             tabId: activeTab.id,
           },
-          files: ["styling/blocked-style.css"],
+          files: [stylingForBlockedSites],
         });
       } catch (err) {
         console.error(`failed to remove CSS: ${err}`);
       }
+    } else if (
+      message.type === "checkIfHostnameIsBlocked" &&
+      isBlockerPaused === false
+    ) {
+      // Fetch the stored URLs array from chrome.storage
+      await chrome.storage.sync.get("blockedSites", function (data) {
+        blockedHostnames = data.blockedSites; // Use the retrieved array or an empty array
+      });
+
+      const activeURL = new URL(message.data);
+      // Checks if the site is among the list of blocked webistes
+      if (
+        blockedHostnames.includes(activeURL.hostname) &&
+        isBlockerPaused === false
+      ) {
+        console.log("is a blocked website: " + activeURL.hostname);
+        const [activeTab] = await getActiveTab();
+
+        // Try to insert CSS
+        try {
+          chrome.scripting.insertCSS({
+            target: {
+              tabId: activeTab.id,
+            },
+            files: [stylingForBlockedSites],
+          });
+        } catch (err) {
+          console.error(`failed to insert CSS: ${err}`);
+        }
+      }
     }
   })();
 
-  if (message.data === "fetchBlockedKeywords") {
+  if (message.type === "fetchBlockedKeywords") {
     sendResponse(keywordData);
   }
 });
 
-// Check if site is in the list of blocked sites
-function isBlockedSite(url) {
-  return blockedSitesList.some((site) => url.includes(site));
+// Get the currently active tab
+async function getActiveTab() {
+  return ([activeTab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  }));
 }
 
 chrome.storage.sync.get("blockedSites", function (data) {
-  blockedSitesList = data.blockedSites; // Use the retrieved array or an empty array
+  blockedHostnames = data.blockedSites; // Use the retrieved array or an empty array
 });
