@@ -30,14 +30,11 @@ fetchJsonData();
 // chrome.storage.sync.set({ isBlockerPaused: false });
 // chrome.storage.sync.set({ blockedSites: blockedHostnames });
 
-// DOES NOT WORK IF AN ELEMENT HAS MORE THAN ONE WORK (E.G. FIFTH'S DISEASE)
+// DOES NOT WORK IF AN ELEMENT HAS MORE THAN ONE WORD (E.G. FIFTH'S DISEASE)
 async function fetchJsonData() {
   try {
     const response = await fetch("../medicinenet-diseases.json");
-    const data = await response.json();
-    keywordData = data.map((entry) => entry.disease.toLowerCase());
-    //keywordData = new Set(data.map((entry) => entry.disease));
-    console.log(keywordData);
+    keywordData = await response.json();
   } catch (error) {
     console.error("Error fetching JSON data:", error);
   }
