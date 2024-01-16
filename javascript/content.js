@@ -38,10 +38,10 @@ if (
 } else {
   (async () => {
     // Check if the webpage is among the list of blocked URLs
-    chrome.runtime.sendMessage({
-      type: "checkIfHostnameIsBlocked",
-      data: window.location.href,
-    });
+    // chrome.runtime.sendMessage({
+    //   type: "checkIfHostnameIsBlocked",
+    //   data: window.location.href,
+    // });
 
     // Check if current webpage contains triggering keywords
     if ((await isPageSensitive()) === true) {
@@ -58,55 +58,58 @@ async function isPageSensitive() {
     console.log(error);
   }
 
-  const title = document.querySelector("title");
-  if (title) {
-    const titleText = title.textContent
-      .toLowerCase()
-      .split(" ") // Split text content into an array of words
-      .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
-    if (titleText.some((keyword) => blockedKeywords.includes(keyword))) {
-      console.log(
-        "title has blocked keyword: " +
-          titleText.find((keyword) => blockedKeywords.includes(keyword))
-      );
-      console.log(titleText);
-      return true;
-    }
-  }
+  // const title = document.querySelector("title");
+  // if (title) {
+  //   const titleText = processText(title);
+  //   console.log(titleText);
+  //   if (hasBlockedKeyword(titleText, blockedKeywords)) {
+  //     console.log(
+  //       "title has blocked keyword: " +
+  //         blockedKeywords.find((word) => titleText.includes(" " + word + " "))
+  //     );
+  //     console.log(titleText);
+  //     return true;
+  //   }
+  // }
 
-  const metaKeywords = document.querySelector('meta[name="keywords"]');
-  if (metaKeywords) {
-    const keywordsContent = metaKeywords
-      .getAttribute("content")
-      .toLowerCase()
-      .split(","); // Split text content into an array of keywords
-    if (keywordsContent.some((keyword) => blockedKeywords.includes(keyword))) {
-      console.log(
-        "meta keywords has blocked keyword: " +
-          keywordsContent.find((keyword) => blockedKeywords.includes(keyword))
-      );
-      console.log(metaKeywords);
-      return true;
-    }
-  }
+  // const metaKeywords = document.querySelector('meta[name="keywords"]');
+  // if (metaKeywords) {
+  //   const keywordsContent = metaKeywords
+  //     .getAttribute("content")
+  //     .toLowerCase()
+  //     .split(","); // Split text content into an array of keywords
+  //   console.log(keywordsContent);
+  //   if (
+  //     keywordsContent.some((word) => binarySearch(blockedKeywords, word) > -1)
+  //   ) {
+  //     console.log(
+  //       "meta keywords has blocked keyword: " +
+  //         keywordsContent.find(
+  //           (word) => binarySearch(blockedKeywords, word) > -1
+  //         )
+  //     );
+  //     console.log(metaKeywords);
+  //     return true;
+  //   }
+  // }
 
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) {
-    const descriptionContent = metaDescription
-      .getAttribute("content")
-      .toLowerCase()
-      .split(" ") // Split text content into an array of words
-      .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
-    if (
-      descriptionContent.some((keyword) => blockedKeywords.includes(keyword))
-    ) {
+    const descriptionContent =
+      " " +
+      metaDescription
+        .getAttribute("content")
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "") +
+      " ";
+    console.log(descriptionContent);
+    if (hasBlockedKeyword(descriptionContent, blockedKeywords)) {
       console.log(
         "meta description has blocked keyword: " +
-          descriptionContent.find((keyword) =>
-            blockedKeywords.includes(keyword)
+          blockedKeywords.find((keyword) =>
+            descriptionContent.includes(keyword)
           )
       );
-      console.log(descriptionContent);
       return true;
     }
   }
@@ -138,14 +141,11 @@ async function filterPages(blockedKeywords) {
     //Check if unwanted keywords are in the title
     if (titleEl) {
       isSearchResult = true;
-      const title = titleEl.textContent
-        .toLowerCase()
-        .split(" ") // Split text content into an array of words
-        .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
-      if (title.some((word) => binarySearch(blockedKeywords, word) > -1)) {
+      const title = processText(titleEl);
+      if (hasBlockedKeyword(title, blockedKeywords)) {
         console.log(
           "search result title has blocked keyword: " +
-            title.find((keyword) => binarySearch(blockedKeywords, keyword) > -1)
+            blockedKeywords.find((word) => title.includes(" " + word + " "))
         );
         result.remove();
         return;
@@ -157,17 +157,14 @@ async function filterPages(blockedKeywords) {
     if (descriptionDiv) {
       isSearchResult = true;
       // Get the description from the descriptionDiv
-      const description = descriptionDiv.textContent
-        .toLowerCase()
-        .split(" ") // Split text content into an array of words
-        .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
+      const description = processText(descriptionDiv);
       // Check if unwanted keywords are in the description
-      if (
-        description.some((word) => binarySearch(blockedKeywords, word) > -1)
-      ) {
+      if (hasBlockedKeyword(description, blockedKeywords)) {
         console.log(
           "search result description has blocked keyword: " +
-            description.find((word) => binarySearch(blockedKeywords, word) > -1)
+            blockedKeywords.some((word) =>
+              description.includes(" " + word + " ")
+            )
         );
         result.remove();
         return;
@@ -179,18 +176,13 @@ async function filterPages(blockedKeywords) {
     if (mainResultDescriptionDiv) {
       isSearchResult = true;
       // Get the description from the descriptionDiv
-      const description = mainResultDescriptionDiv.textContent
-        .toLowerCase()
-        .split(" ") // Split text content into an array of words
-        .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
+      const description = processText(mainResultDescriptionDiv);
       // Check if unwanted keywords are in the description
-      if (
-        description.some((word) => binarySearch(blockedKeywords, word) > -1)
-      ) {
+      if (hasBlockedKeyword(description, blockedKeywords)) {
         console.log(
           "main search result description has blocked keyword: " +
-            description.find(
-              (keyword) => binarySearch(blockedKeywords, keyword) > -1
+            blockedKeywords.some((word) =>
+              description.includes(" " + word + " ")
             )
         );
         result.remove();
@@ -203,4 +195,12 @@ async function filterPages(blockedKeywords) {
       result.classList.add("safe-site");
     }
   });
+}
+
+function processText(el) {
+  return " " + el.textContent.toLowerCase().replace(/[^\w\s]/g, "") + " ";
+}
+
+function hasBlockedKeyword(str, array) {
+  return array.some((word) => str.includes(" " + word + " "));
 }

@@ -4,12 +4,12 @@ function binarySearch(array, item) {
   while (min <= max) {
     // Calculate the middle index of the array
     let midIndex = Math.floor((max + min) / 2);
-    //console.log(max + " + " + min);
+
     // Check if the middle value of the array is smaller or bigger than the desired item
     let result = item.localeCompare(array[midIndex]);
-    //console.log("result: " + array[midIndex] + " item: " + item);
 
     // The result equals the item being searched for
+    // THIS CODE WON'T WORK IF THERE ARE DUPLICATES
     if (result === 0) {
       return midIndex;
     } else if (result > 0) {
