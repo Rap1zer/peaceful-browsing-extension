@@ -1,6 +1,5 @@
 let blockedKeywords;
 console.log("injected");
-
 // Retrieves the blocked keywords from chrome.storage.sync.
 function getBlockedKeywords() {
   return new Promise((resolve, reject) => {
@@ -136,17 +135,17 @@ async function filterPages(blockedKeywords) {
     let isSearchResult = false;
 
     const titleEl = result.querySelector("h3");
-    // Check if unwanted keywords are in the title
+    //Check if unwanted keywords are in the title
     if (titleEl) {
       isSearchResult = true;
       const title = titleEl.textContent
         .toLowerCase()
         .split(" ") // Split text content into an array of words
         .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word
-      if (title.some((word) => blockedKeywords.includes(word))) {
+      if (title.some((word) => binarySearch(blockedKeywords, word) > -1)) {
         console.log(
           "search result title has blocked keyword: " +
-            title.find((keyword) => blockedKeywords.includes(keyword))
+            title.find((keyword) => binarySearch(blockedKeywords, keyword) > -1)
         );
         result.remove();
         return;
@@ -163,10 +162,12 @@ async function filterPages(blockedKeywords) {
         .split(" ") // Split text content into an array of words
         .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
       // Check if unwanted keywords are in the description
-      if (description.some((keyword) => blockedKeywords.includes(keyword))) {
+      if (
+        description.some((word) => binarySearch(blockedKeywords, word) > -1)
+      ) {
         console.log(
           "search result description has blocked keyword: " +
-            description.find((keyword) => blockedKeywords.includes(keyword))
+            description.find((word) => binarySearch(blockedKeywords, word) > -1)
         );
         result.remove();
         return;
@@ -183,10 +184,14 @@ async function filterPages(blockedKeywords) {
         .split(" ") // Split text content into an array of words
         .map((word) => word.replace(/[^\w\s]/g, "")); // Remove any character that is not a word character
       // Check if unwanted keywords are in the description
-      if (description.some((keyword) => blockedKeywords.includes(keyword))) {
+      if (
+        description.some((word) => binarySearch(blockedKeywords, word) > -1)
+      ) {
         console.log(
           "main search result description has blocked keyword: " +
-            description.find((keyword) => blockedKeywords.includes(keyword))
+            description.find(
+              (keyword) => binarySearch(blockedKeywords, keyword) > -1
+            )
         );
         result.remove();
         return;
