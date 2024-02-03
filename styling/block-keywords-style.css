@@ -11,17 +11,6 @@ body {
   display: flex;
 }
 
-.new-keyword-input {
-  font-size: 1.2em;
-  height: 32px;
-  width: 100%;
-  padding: 10px;
-  border-radius: 4px 0 0 4px;
-  border: 1px solid black;
-  border-right: none;
-  font-family: "Inria Serif", serif;
-}
-
 .block-new-keyword-btn {
   font-size: 1.2em;
   height: 32px;
