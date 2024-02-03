@@ -7,33 +7,62 @@
     <script src="javascript/blockKeywords.js" defer></script>
     <script src="javascript/searchBlockedKeywords.js" defer></script>
     <link rel="stylesheet" href="styling/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    />
+    <link rel="stylesheet" href="styling/block-keywords-style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
   </head>
   <body>
-    <button class="exit-btn">X</button>
-    <p>
-      Block a keyword so search results and webpages containing this keyword in
-      the title or description will not be displayed
+    <button class="exit-btn"><i class="fa-solid fa-xl fa-xmark"></i></button>
+    <p class="description">
+      Input keywords below that you wish to be blocked. If a search result or
+      website’s main body contains this keyword, it will be blocked.
     </p>
-    <input type="text" id="new-keyword-input" />
-    <button id="block-new-keyword-btn">Block</button>
-
-    <div class="keyword-search-container">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="keyword-search-input" />
-      <ul id="blocked-keywords-list"></ul>
+    <div class="block-new-keyword-container">
+      <input
+        type="text"
+        id="new-keyword-input"
+        class="new-keyword-input"
+        placeholder="Enter new keyword..."
+      />
+      <button id="block-new-keyword-btn" class="block-new-keyword-btn">
+        Block
+      </button>
     </div>
-    <button>
-      <a href="main.html">Go Back</a>
+
+    <p class="keyword-list-description">View or remove current keywords</p>
+      <div class="keyword-search-container">
+        <input type="text" id="keyword-search-input" class="keyword-search-input" placeholder="Input keyword..."/>
+        <i class="fa-solid fa-lg fa-magnifying-glass"></i>
+      </div>
+      <ul id="blocked-keywords-list" class="blocked-keywords-list">
+        <li id="block-keyword-list-item" class="block-keyword-item">
+          <p>Keyword</p>
+          <button><i class="fa-solid fa-lg fa-trash"></i></button>
+        </li id="block-keyword-list-item">
+        <li id="block-keyword-list-item" class="block-keyword-item">
+          <p>Keyword</p>
+          <button><i class="fa-solid fa-lg fa-trash"></i></button>
+        </li>
+        <li id="block-keyword-list-item" class="block-keyword-item">
+          <p>Keyword</p>
+          <button><i class="fa-solid fa-lg fa-trash"></i></button>
+        </li>
+      </ul>
+    </div>
+    <button class="go-back-btn">
+      <a href="main.html"><i class="fa-solid fa-arrow-left"></i>Go Back</a>
     </button>
   </body>
 </html>

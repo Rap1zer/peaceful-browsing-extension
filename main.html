@@ -14,25 +14,40 @@
       href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
   </head>
   <body>
-    <button class="exit-btn">X</button>
+    <button class="exit-btn"><i class="fa-solid fa-xl fa-xmark"></i></button>
     <header>
-      <img src="" alt="logo of chrome extension" />
-      <h1>Wellness Buddy</h1>
+      <h1>Peaceful Browsing</h1>
     </header>
     <main>
-      <p>View or change currently blocked:</p>
-      <div>
-        <button id="websites-btn">Websites</button>
-        <button id="keywords-btn">Keywords</button>
+      <p class="description">View or change currently blocked:</p>
+      <div class="website-keyword-btn-container">
+        <button id="websites-btn" class="websites-btn">Websites</button>
+        <button id="keywords-btn" class="keywords-btn">Keywords</button>
       </div>
-      <p id="pause-blocker-msg"></p>
-      <button id="pause-blocker-btn">Disable blocker temporarily</button>
+      <div class="pause-blocker-container">
+        <p id="pause-blocker-msg" class="pause-blocker-msg"></p>
+        <button id="pause-blocker-btn">Disable blocker temporarily</button>
+      </div>
     </main>
-    <footer>
-      <button id="pause-once-btn">Pause on this site once</button>
-      <p>Floral designs by Samsul Aripin on Vecteezy.com</p>
-    </footer>
   </body>
+  <footer>
+    <button id="pause-once-btn" class="pause-once-btn">
+      Pause on this site once
+    </button>
+    <p class="credits">
+      Floral designs by Samsul Aripin on <a href="Vecteezy.com">Vecteezy.com</a>
+    </p>
+  </footer>
 </html>

@@ -1,4 +1,61 @@
 body {
   width: 300px;
   height: 332px;
+  display: flex;
+  flex-direction: column;
+}
+
+button:not(.exit-btn, .pause-once-btn) {
+  background-color: #8fc0a9;
+  padding: 0.4em 0.8em;
+  font-size: 1.3em;
+}
+
+.website-keyword-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+}
+
+.description {
+  font-size: 1.2em;
+}
+
+.websites-btn {
+  padding: 1.3em 2.4em;
+}
+
+.keywords-btn {
+  padding: 1.3em 2.4em;
+  margin-left: 20px;
+}
+
+.pause-blocker-container {
+  margin: 25px 0 10px 0;
+}
+
+.pause-blocker-msg {
+  margin-bottom: 3px;
+}
+
+footer {
+  margin-top: auto;
+}
+
+.pause-once-btn {
+  background: none;
+  padding: 0;
+  color: #bf2020;
+  text-decoration: underline;
+  font-size: 1.2em;
+}
+
+.credits {
+  text-decoration: underline;
+  margin-top: 10px;
+  font-family: "Inria Serif", sans-serif;
+}
+
+.credits a {
+  color: black;
 }

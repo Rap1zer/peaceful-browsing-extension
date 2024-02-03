@@ -1,0 +1,82 @@
+body {
+  width: 300px;
+  height: 481px;
+}
+
+.description {
+  margin-right: 23px;
+}
+
+.block-new-keyword-container {
+  display: flex;
+}
+
+.new-keyword-input {
+  font-size: 1.2em;
+  height: 32px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px 0 0 4px;
+  border: 1px solid black;
+  border-right: none;
+  font-family: "Inria Serif", serif;
+}
+
+.block-new-keyword-btn {
+  font-size: 1.2em;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 0 4px 4px 0;
+  text-align: center;
+  background-color: #f06e45;
+}
+
+.keyword-list-description {
+  margin: 18px 0 6px 0;
+  font-size: 1.1em;
+  padding: 0;
+}
+
+.keyword-search-container {
+  position: relative;
+}
+
+.keyword-search-container i {
+  position: absolute;
+  left: 13px;
+  top: 15px;
+}
+
+.keyword-search-input {
+  width: calc(100% - 10px);
+  height: 32px;
+  border-radius: 4px;
+  margin: 0 5px;
+  padding: 12px 0 12px 28px;
+  border: 1px solid black;
+}
+
+.blocked-keywords-list {
+  padding: 0;
+  margin: 0;
+}
+
+.block-keyword-item {
+  display: flex;
+  align-items: center;
+  height: 35px;
+  margin: 0 -8px;
+}
+
+.block-keyword-item p {
+  margin-left: 16px;
+  font-size: 1.17em;
+}
+
+.block-keyword-item button {
+  margin-left: auto;
+  margin-right: 12px;
+  padding: none;
+  background: none;
+  height: 20px;
+}

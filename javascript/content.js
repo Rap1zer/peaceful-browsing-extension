@@ -37,11 +37,11 @@ if (
   observer.observe(targetNode, config);
 } else {
   (async () => {
-    // Check if the webpage is among the list of blocked URLs
-    // chrome.runtime.sendMessage({
-    //   type: "checkIfHostnameIsBlocked",
-    //   data: window.location.href,
-    // });
+    //Check if the webpage is among the list of blocked URLs
+    chrome.runtime.sendMessage({
+      type: "checkIfHostnameIsBlocked",
+      data: window.location.href,
+    });
 
     // Check if current webpage contains triggering keywords
     if ((await isPageSensitive()) === true) {
@@ -58,40 +58,38 @@ async function isPageSensitive() {
     console.log(error);
   }
 
-  // const title = document.querySelector("title");
-  // if (title) {
-  //   const titleText = processText(title);
-  //   console.log(titleText);
-  //   if (hasBlockedKeyword(titleText, blockedKeywords)) {
-  //     console.log(
-  //       "title has blocked keyword: " +
-  //         blockedKeywords.find((word) => titleText.includes(" " + word + " "))
-  //     );
-  //     console.log(titleText);
-  //     return true;
-  //   }
-  // }
+  const title = document.querySelector("title");
+  if (title) {
+    const titleText = processText(title);
+    if (hasBlockedKeyword(titleText, blockedKeywords)) {
+      console.log(
+        "title has blocked keyword: " +
+          blockedKeywords.find((word) => titleText.includes(" " + word + " "))
+      );
+      return true;
+    }
+  }
 
-  // const metaKeywords = document.querySelector('meta[name="keywords"]');
-  // if (metaKeywords) {
-  //   const keywordsContent = metaKeywords
-  //     .getAttribute("content")
-  //     .toLowerCase()
-  //     .split(","); // Split text content into an array of keywords
-  //   console.log(keywordsContent);
-  //   if (
-  //     keywordsContent.some((word) => binarySearch(blockedKeywords, word) > -1)
-  //   ) {
-  //     console.log(
-  //       "meta keywords has blocked keyword: " +
-  //         keywordsContent.find(
-  //           (word) => binarySearch(blockedKeywords, word) > -1
-  //         )
-  //     );
-  //     console.log(metaKeywords);
-  //     return true;
-  //   }
-  // }
+  const metaKeywords = document.querySelector('meta[name="keywords"]');
+  if (metaKeywords) {
+    const keywordsContent = metaKeywords
+      .getAttribute("content")
+      .toLowerCase()
+      .split(","); // Split text content into an array of keywords
+    console.log(keywordsContent);
+    if (
+      keywordsContent.some((word) => binarySearch(blockedKeywords, word) > -1)
+    ) {
+      console.log(
+        "meta keywords has blocked keyword: " +
+          keywordsContent.find(
+            (word) => binarySearch(blockedKeywords, word) > -1
+          )
+      );
+      console.log(metaKeywords);
+      return true;
+    }
+  }
 
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) {
@@ -102,12 +100,11 @@ async function isPageSensitive() {
         .toLowerCase()
         .replace(/[^\w\s]/g, "") +
       " ";
-    console.log(descriptionContent);
     if (hasBlockedKeyword(descriptionContent, blockedKeywords)) {
       console.log(
         "meta description has blocked keyword: " +
-          blockedKeywords.find((keyword) =>
-            descriptionContent.includes(keyword)
+          blockedKeywords.find((word) =>
+            descriptionContent.includes(" " + word + " ")
           )
       );
       return true;
@@ -162,7 +159,7 @@ async function filterPages(blockedKeywords) {
       if (hasBlockedKeyword(description, blockedKeywords)) {
         console.log(
           "search result description has blocked keyword: " +
-            blockedKeywords.some((word) =>
+            blockedKeywords.find((word) =>
               description.includes(" " + word + " ")
             )
         );
@@ -181,7 +178,7 @@ async function filterPages(blockedKeywords) {
       if (hasBlockedKeyword(description, blockedKeywords)) {
         console.log(
           "main search result description has blocked keyword: " +
-            blockedKeywords.some((word) =>
+            blockedKeywords.find((word) =>
               description.includes(" " + word + " ")
             )
         );

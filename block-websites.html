@@ -6,37 +6,45 @@
     <title>Block a site</title>
     <script src="javascript/blockSites.js" defer></script>
     <link rel="stylesheet" href="styling/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    />
+    <link rel="stylesheet" href="styling/bloxk-websites-style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
   </head>
   <body>
-    <button class="exit-btn">X</button>
-    <p>Pages with this URL will not run:</p>
-    <p id="page-path">NAME OF SITE</p>
-    <input type="range" id="path-slider" />
-    <button id="block-this-site">Block</button>
+    <button class="exit-btn"><i class="fa-solid fa-xl fa-xmark"></i></button>
+    <p>Pages matching this URL will be blocked:</p>
+    <p id="page-path" class="page-path">NAME OF SITE</p>
+    <input type="range" id="path-slider" class="path-slider" />
+    <button id="block-this-site" class="block-this-site btn">Block</button>
+    <p class="description">Input URLs below that you wish to be blocked</p>
     <div class="URL-input-div">
-      <p>Input URLs below that you wish to be blocked</p>
       <input
         type="text"
         id="site-input"
+        class="site-input"
         placeholder="Enter a website host name to block"
       />
-      <button id="block-custom-site">Block site</button>
+      <button id="block-custom-site" class="block-custom-site btn">
+        Block
+      </button>
     </div>
-    <button id="search-blocked-sites-btn">
-      view or remove currently blocked URLs
+    <button id="search-blocked-sites-btn" class="search-blocked-sites-btn btn">
+      Search or remove currently blocked URLs
     </button>
-    <button>
-      <a href="main.html">Go Back</a>
+    <button class="go-back-btn">
+      <a href="main.html"><i class="fa-solid fa-arrow-left"></i>Go Back</a>
     </button>
   </body>
 </html>
