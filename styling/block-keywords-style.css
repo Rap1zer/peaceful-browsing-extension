@@ -11,6 +11,12 @@ body {
   display: flex;
 }
 
+.input-text {
+  border-radius: 4px 0 0 4px;
+  border: 1px solid black;
+  border-right: none;
+}
+
 .block-new-keyword-btn {
   font-size: 1.2em;
   height: 32px;

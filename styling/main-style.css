@@ -1,20 +1,20 @@
 body {
-  width: 300px;
+  width: 230px;
   height: 332px;
   display: flex;
+  margin-top: 8px;
   flex-direction: column;
-}
-
-button:not(.exit-btn, .pause-once-btn) {
-  background-color: #8fc0a9;
-  padding: 0.4em 0.8em;
-  font-size: 1.3em;
+  background-image: url("../images/floral.png");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 140px;
+  background-position: bottom right;
 }
 
 .website-keyword-btn-container {
   width: 100%;
   display: flex;
-  justify-content: left;
+  justify-content: space-around;
 }
 
 .description {
@@ -22,16 +22,26 @@ button:not(.exit-btn, .pause-once-btn) {
 }
 
 .websites-btn {
-  padding: 1.3em 2.4em;
+  background-color: #8fc0a9;
+  font-size: 1.3em;
+  padding: 0.5em 1em;
 }
 
 .keywords-btn {
-  padding: 1.3em 2.4em;
-  margin-left: 20px;
+  background-color: #8fc0a9;
+  font-size: 1.3em;
+  padding: 0.5em 1em;
 }
 
 .pause-blocker-container {
   margin: 25px 0 10px 0;
+}
+
+.pause-blocker-btn {
+  background-color: #8fc0a9;
+  padding: 0.4em 0.8em;
+  font-size: 1.3em;
+  width: 100%;
 }
 
 .pause-blocker-msg {
@@ -43,7 +53,7 @@ footer {
 }
 
 .pause-once-btn {
-  background: none;
+  background: #fcf9ed;
   padding: 0;
   color: #bf2020;
   text-decoration: underline;
@@ -58,4 +68,8 @@ footer {
 
 .credits a {
   color: black;
+}
+
+.credits mark {
+  background-color: #fcf9ed;
 }
