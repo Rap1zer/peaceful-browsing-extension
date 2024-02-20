@@ -136,8 +136,8 @@ async function filterPages(blockedKeywords) {
     console.log(error);
   }
 
-  //Select and remove search results with unwanted keywords
-  const searchResults = document.querySelectorAll('[class^="g Ww4FFb"]');
+  //Select and remove search results with unwanted keywords [class^="g Ww4FFb"]
+  const searchResults = document.querySelectorAll('[class^="g"]');
   searchResults.forEach((result) => {
     // Check whether the object is a safe site
     if (result.classList.contains("safe-site")) {
@@ -179,10 +179,12 @@ async function filterPages(blockedKeywords) {
 
     // Check if unwanted keywords are in the description of the main result
     const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
+    console.log(mainResultDescriptionDiv);
     if (mainResultDescriptionDiv) {
       isSearchResult = true;
       // Get the description from the descriptionDiv
       const description = processText(mainResultDescriptionDiv);
+      console.log(description);
       // Check if unwanted keywords are in the description
       if (hasBlockedKeyword(description, blockedKeywords)) {
         filterResult(
