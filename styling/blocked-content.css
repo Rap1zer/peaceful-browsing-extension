@@ -1,0 +1,28 @@
+.blocked-result {
+  margin: 2em 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.blocked-result h1 {
+  all: unset;
+  font-family: "Inria Serif", sans-serif;
+  font-size: 1rem;
+}
+
+.blocked-result button {
+  font-size: 0.9rem;
+  font-family: "Inria Sans", sans-serif;
+  margin-top: 0.9em;
+  width: 160px;
+  border: 0;
+  border-radius: 2px;
+  padding: 0.2em;
+}
+
+.blocked-result p {
+  display: none;
+  font-size: 1rem;
+  margin: 0;
+  font-family: "Inria Sans", sans-serif;
+}

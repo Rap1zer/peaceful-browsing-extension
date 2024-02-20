@@ -1,4 +1,17 @@
 let blockedKeywords;
+
+document.head.innerHTML += `
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
+  rel="stylesheet"
+/>
+<link
+  href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
+  rel="stylesheet"
+/>`;
+
 console.log("injected");
 // Retrieves the blocked keywords from chrome.storage.sync.
 function getBlockedKeywords() {
@@ -124,7 +137,7 @@ async function filterPages(blockedKeywords) {
   }
 
   //Select and remove search results with unwanted keywords
-  const searchResults = document.querySelectorAll('[class^="g"]');
+  const searchResults = document.querySelectorAll('[class^="g Ww4FFb"]');
   searchResults.forEach((result) => {
     // Check whether the object is a safe site
     if (result.classList.contains("safe-site")) {
@@ -140,11 +153,10 @@ async function filterPages(blockedKeywords) {
       isSearchResult = true;
       const title = processText(titleEl);
       if (hasBlockedKeyword(title, blockedKeywords)) {
-        console.log(
-          "search result title has blocked keyword: " +
-            blockedKeywords.find((word) => title.includes(" " + word + " "))
+        filterResult(
+          result,
+          blockedKeywords.find((word) => title.includes(" " + word + " "))
         );
-        result.remove();
         return;
       }
     }
@@ -157,13 +169,10 @@ async function filterPages(blockedKeywords) {
       const description = processText(descriptionDiv);
       // Check if unwanted keywords are in the description
       if (hasBlockedKeyword(description, blockedKeywords)) {
-        console.log(
-          "search result description has blocked keyword: " +
-            blockedKeywords.find((word) =>
-              description.includes(" " + word + " ")
-            )
+        filterResult(
+          result,
+          blockedKeywords.find((word) => description.includes(" " + word + " "))
         );
-        result.remove();
         return;
       }
     }
@@ -176,13 +185,10 @@ async function filterPages(blockedKeywords) {
       const description = processText(mainResultDescriptionDiv);
       // Check if unwanted keywords are in the description
       if (hasBlockedKeyword(description, blockedKeywords)) {
-        console.log(
-          "main search result description has blocked keyword: " +
-            blockedKeywords.find((word) =>
-              description.includes(" " + word + " ")
-            )
+        filterResult(
+          result,
+          blockedKeywords.find((word) => description.includes(" " + word + " "))
         );
-        result.remove();
         return;
       }
     }
@@ -201,3 +207,27 @@ function processText(el) {
 function hasBlockedKeyword(str, array) {
   return array.some((word) => str.includes(" " + word + " "));
 }
+
+let resultNum = 0;
+function filterResult(result, keywordFound) {
+  result.innerHTML = `
+  <h1>This result may potentially be triggering</h1>
+  <button id="view-keywords-btn-${resultNum}">View triggering word</button>
+  <p id="${resultNum}-result">${keywordFound}</p>`;
+  result.classList.add("blocked-result");
+  resultNum++;
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.id.includes("view-keywords-btn-")) {
+    let num = e.target.id.match(/(\d+)$/)[0];
+    const pEl = document.getElementById(`${num}-result`);
+    if (pEl.style.display === "none" || pEl.style.display === "") {
+      pEl.style.display = "block";
+      e.target.textContent = "Hide triggering word";
+    } else {
+      pEl.style.display = "none";
+      e.target.textContent = "View triggering word";
+    }
+  }
+});
