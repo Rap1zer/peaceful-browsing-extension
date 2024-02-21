@@ -84,6 +84,12 @@ body {
   height: 20px;
 }
 
+.no-results-msg {
+  margin: 0 0 0 16px;
+  font-family: "inria-serif", serif;
+  font-size: 0.87rem;
+}
+
 .load-more-btn {
   background: #8fc0a9;
   width: 100%;

@@ -49,7 +49,12 @@ document.addEventListener("keydown", (event) => {
             results.push(keywords[i]);
           }
         }
-        loadResults(results);
+
+        if (results.length === 0) {
+          keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
+        } else {
+          loadResults(results);
+        }
       }
     }
   });
