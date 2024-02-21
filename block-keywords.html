@@ -24,7 +24,6 @@
     />
   </head>
   <body>
-    <button class="exit-btn"><i class="fa-solid fa-xl fa-xmark"></i></button>
     <p class="description">
       Input keywords below that you wish to be blocked. If a search result or
       website’s main body contains this keyword, it will be blocked.
@@ -40,29 +39,23 @@
         Block
       </button>
     </div>
+    <p id="block-new-keyword-msg" class="block-new-keyword-msg"></p>
 
     <p class="keyword-list-description">View or remove current keywords</p>
-      <div class="keyword-search-container">
-        <input type="text" id="keyword-search-input" class="keyword-search-input" placeholder="Input keyword..."/>
-        <i class="fa-solid fa-lg fa-magnifying-glass"></i>
-      </div>
-      <ul id="blocked-keywords-list" class="blocked-keywords-list">
-        <li id="block-keyword-list-item" class="block-keyword-item">
-          <p>Keyword</p>
-          <button><i class="fa-solid fa-lg fa-trash"></i></button>
-        </li id="block-keyword-list-item">
-        <li id="block-keyword-list-item" class="block-keyword-item">
-          <p>Keyword</p>
-          <button><i class="fa-solid fa-lg fa-trash"></i></button>
-        </li>
-        <li id="block-keyword-list-item" class="block-keyword-item">
-          <p>Keyword</p>
-          <button><i class="fa-solid fa-lg fa-trash"></i></button>
-        </li>
-      </ul>
+    <div class="keyword-search-container">
+      <input
+        type="text"
+        id="keyword-search-input"
+        class="keyword-search-input"
+        placeholder="Press enter to search..."
+      />
+      <i class="fa-solid fa-lg fa-magnifying-glass"></i>
     </div>
+    <ul id="blocked-keywords-list" class="blocked-keywords-list"></ul>
+  </body>
+  <footer>
     <button class="go-back-btn">
       <a href="main.html"><i class="fa-solid fa-arrow-left"></i>Go Back</a>
     </button>
-  </body>
+  </footer>
 </html>

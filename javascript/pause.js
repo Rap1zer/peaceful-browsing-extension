@@ -4,7 +4,7 @@ const pauseBlockerMsg = document.getElementById("pause-blocker-msg");
 chrome.storage.sync.get("isBlockerPaused", function (data) {
   data.isBlockerPaused
     ? (pauseBlockerBtn.innerText = "Enable blocker")
-    : (pauseBlockerBtn.innerText = "Disable blocker temporarily");
+    : (pauseBlockerBtn.innerText = "Disable blocker");
 });
 
 // Remove the CSS hiding the site when the "pause once" button is pressed
@@ -17,7 +17,7 @@ pauseBlockerBtn.addEventListener("click", async () => {
   await chrome.storage.sync.get("isBlockerPaused", function (data) {
     // This chrome extension is paused. Unpause it
     if (data.isBlockerPaused === true) {
-      pauseBlockerBtn.innerText = "Disable blocker temporarily";
+      pauseBlockerBtn.innerText = "Disable blocker";
       chrome.storage.sync.set({ isBlockerPaused: false });
     } else {
       // This chrome extension is not paused. Pause it.

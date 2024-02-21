@@ -11,6 +11,10 @@ body {
   background-position: bottom right;
 }
 
+h1 {
+  margin: 5px;
+}
+
 .website-keyword-btn-container {
   width: 100%;
   display: flex;

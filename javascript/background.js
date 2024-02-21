@@ -12,20 +12,8 @@ fetchJsonData();
 
 async function fetchJsonData() {
   try {
-    // let newKeywordData = [];
-    // let filteredWords = [];
     const response = await fetch("../medicinenet-diseases.json");
     keywordData = await response.json();
-    // newKeywordData = keywordData.filter((keyword, index) => {
-    //   let updatedWord = keyword.split(" ");
-    //   let remove = updatedWord.find(
-    //     (word) => keywordData.includes(word) && word !== keyword
-    //   );
-    //   if (remove !== undefined) filteredWords.push([keyword, remove]);
-    //   return remove === undefined;
-    // });
-    // console.log(filteredWords);
-    // console.log(newKeywordData);
     chrome.storage.local.set({ keywords: keywordData });
   } catch (error) {
     console.error("Error fetching JSON data:", error);
