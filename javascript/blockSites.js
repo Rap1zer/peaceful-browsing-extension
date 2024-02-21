@@ -12,11 +12,12 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   url = new URL(tabs[0].url);
   // Get the path segments in the path name as an array
   pathSegments = url.pathname.split("/").filter(Boolean);
+  console.log(pathSegments);
   // Set the path slider
   pathSlider.max = pathSegments.length;
   pathSlider.value = pathSegments.length;
 
-  // Update page path elemetn with the path of the page
+  // Update page path element with the path of the page
   pagePathEl.innerText = url.hostname + url.pathname;
 });
 
@@ -42,7 +43,7 @@ blockThisSiteBtn.addEventListener("click", async () => {
 });
 
 pathSlider.addEventListener("input", () => {
-  pagePathEl.innerText = url.hostname;
+  pagePathEl.innerText = url.hostname + "/";
   for (let i = 0; i < pathSlider.value; i++) {
     pagePathEl.innerText += pathSegments[i] + "/";
   }
