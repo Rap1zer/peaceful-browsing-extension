@@ -1,29 +1,16 @@
 let blockedKeywords;
 
-document.head.innerHTML += `
-<link
-  href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
-  rel="stylesheet"
-/>
-<link
-  href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
-  rel="stylesheet"
-/>`;
-
 console.log("injected");
-// Retrieves the blocked keywords from chrome.storage.sync.
+// Retrieves the blocked keywords from chrome.storage.local
 function getBlockedKeywords() {
   return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(
-      { type: "fetchBlockedKeywords" },
-      function (blockedKeywords) {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(blockedKeywords);
-        }
+    chrome.storage.local.get("keywords", function (result) {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result.keywords);
       }
-    );
+    });
   });
 }
 
@@ -32,6 +19,16 @@ if (
   window.location.hostname == "www.google.com" &&
   window.location.pathname == "/search"
 ) {
+  document.head.innerHTML += `
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet"
+  />`;
+
   // Filter the search results for triggering content
   filterPages(blockedKeywords);
 
@@ -177,7 +174,6 @@ async function filterPages(blockedKeywords) {
 
     // Check if unwanted keywords are in the description of the main result
     const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
-    console.log(mainResultDescriptionDiv);
     if (mainResultDescriptionDiv) {
       isSearchResult = true;
       // Get the description from the descriptionDiv

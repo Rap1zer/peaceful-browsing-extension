@@ -1,6 +1,6 @@
 body {
   width: 230px;
-  height: 332px;
+  height: 300px;
   display: flex;
   margin-top: 8px;
   flex-direction: column;
@@ -31,6 +31,8 @@ body {
   background-color: #8fc0a9;
   font-size: 1.3em;
   padding: 0.5em 1em;
+  margin-top: 1em;
+  width: 100%;
 }
 
 .pause-blocker-container {

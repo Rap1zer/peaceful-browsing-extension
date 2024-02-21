@@ -1,26 +1,6 @@
 let stylingForBlockedSites = "styling/blocked-style.css";
 
-let blockedHostnames = [
-  "www.epocrates.com",
-  "www.everydayhealth.com",
-  "www.healthline.com",
-  "www.mayoclinic.org",
-  "www.medicinenet.com",
-  "www.medlineplus.gov",
-  "www.medpagetoday.com",
-  "www.medscape.com",
-  "www.msdmanuals.com",
-  "www.nih.gov",
-  "www.nhsinform.scot",
-  "openmd.com",
-  "www.rxlist.com",
-  "www.cdc.gov",
-  "www.wolterskluwer.com",
-  "www.uptodate.com",
-  "www.webmd.com",
-  "my.clevelandclinic.org",
-  "www.nhs.uk",
-];
+let blockedHostnames = ["www.epocrates.com", "www.everydayhealth.com"];
 
 let isBlockerPaused = false;
 let keywordData;
@@ -46,6 +26,7 @@ async function fetchJsonData() {
     // });
     // console.log(filteredWords);
     // console.log(newKeywordData);
+    chrome.storage.local.set({ keywords: keywordData });
   } catch (error) {
     console.error("Error fetching JSON data:", error);
   }
@@ -123,8 +104,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   })();
 
-  if (message.type === "fetchBlockedKeywords") {
-    sendResponse(keywordData);
+  if (message.type === "blockKeyword") {
+    keywordData.push(message.keyword);
+    chrome.storage.local.set({ keywords: keywordData });
   }
 });
 
