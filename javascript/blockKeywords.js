@@ -87,10 +87,8 @@ function loadResults(keywords, length) {
 }
 
 document.addEventListener("click", (e) => {
-  console.log(e.target);
   if (e.target.id.includes("-keyword-item")) {
     const keyword = e.target.id.split("-")[0];
-    console.log(keyword);
     chrome.storage.local.get("keywords", function (data) {
       let keywords = data.keywords;
       keywords.splice(keywords.indexOf(keyword), 1);
@@ -98,5 +96,18 @@ document.addEventListener("click", (e) => {
         console.log("keyword removed successfully");
       });
     });
+    // Remove the list item from the DOM
+    e.target.closest(".block-keyword-item").remove();
+    updateColours();
   }
 });
+
+function updateColours() {
+  const list = keywordsList.getElementsByClassName("block-keyword-item");
+  let colSwitch = true;
+  for (let i = 0; i < list.length; i++) {
+    const col = colSwitch ? "#f4f3ef" : "white";
+    list[i].style.backgroundColor = col;
+    colSwitch = !colSwitch;
+  }
+}

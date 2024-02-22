@@ -15,48 +15,59 @@ function getBlockedKeywords() {
 }
 
 // Check if the current page is a Google Search page
-if (
-  window.location.hostname == "www.google.com" &&
-  window.location.pathname == "/search"
-) {
-  document.head.innerHTML += `
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap"
-    rel="stylesheet"
-  />`;
-
-  // Filter the search results for triggering content
-  filterPages(blockedKeywords);
-
-  // Create a new MutationObserver with a callback function
-  // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
-  const observer = new MutationObserver(function () {
-    console.log("mutated");
-    filterPages(blockedKeywords);
+// Wrap in an async function to first check if the chrome extension / blocker is paused
+(async () => {
+  const data = await new Promise((resolve) => {
+    chrome.storage.sync.get("isBlockerPaused", function (data) {
+      resolve(data);
+    });
   });
+  if (data.isBlockerPaused) return;
 
-  const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
-  const config = { childList: true, subtree: true };
+  if (
+    window.location.hostname == "www.google.com" &&
+    window.location.pathname == "/search"
+  ) {
+    // Create first link element
+    const link1 = document.createElement("link");
+    link1.href =
+      "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap";
+    link1.rel = "stylesheet";
 
-  observer.observe(targetNode, config);
-} else {
-  (async () => {
-    //Check if the webpage is among the list of blocked URLs
-    chrome.runtime.sendMessage({
-      type: "checkIfHostnameIsBlocked",
-      data: window.location.href,
+    // Create second link element
+    const link2 = document.createElement("link");
+    link2.href =
+      "https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap";
+    link2.rel = "stylesheet";
+
+    // Append both link elements to the document's head
+    document.head.appendChild(link1);
+    document.head.appendChild(link2);
+
+    // Filter the search results for triggering content
+    filterPages(blockedKeywords);
+
+    // Create a new MutationObserver with a callback function
+    // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
+    const observer = new MutationObserver(function () {
+      filterPages(blockedKeywords);
     });
 
-    // Check if current webpage contains triggering keywords
-    if ((await isPageSensitive()) === true) {
-      chrome.runtime.sendMessage({ type: "insertCSS" });
-    }
-  })();
-}
+    const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
+    const config = { childList: true, subtree: true };
+
+    if (targetNode) observer.observe(targetNode, config);
+  } else {
+    (async () => {
+      // Check if current webpage contains triggering keywords
+      const pageSensitivity = await isPageSensitive();
+      if (pageSensitivity.sensitive) {
+        appendDOMElements(pageSensitivity.word);
+        chrome.runtime.sendMessage({ type: "insertCSS" });
+      }
+    })();
+  }
+})();
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
 async function isPageSensitive() {
@@ -70,11 +81,12 @@ async function isPageSensitive() {
   if (title) {
     const titleText = processText(title);
     if (hasBlockedKeyword(titleText, blockedKeywords)) {
-      console.log(
-        "title has blocked keyword: " +
-          blockedKeywords.find((word) => titleText.includes(" " + word + " "))
-      );
-      return true;
+      return {
+        sensitive: true,
+        word: blockedKeywords.find((word) =>
+          titleText.includes(" " + word + " ")
+        ),
+      };
     }
   }
 
@@ -84,18 +96,15 @@ async function isPageSensitive() {
       .getAttribute("content")
       .toLowerCase()
       .split(","); // Split text content into an array of keywords
-    console.log(keywordsContent);
     if (
       keywordsContent.some((word) => binarySearch(blockedKeywords, word) > -1)
     ) {
-      console.log(
-        "meta keywords has blocked keyword: " +
-          keywordsContent.find(
-            (word) => binarySearch(blockedKeywords, word) > -1
-          )
-      );
-      console.log(metaKeywords);
-      return true;
+      return {
+        sensitive: true,
+        word: keywordsContent.find(
+          (word) => binarySearch(blockedKeywords, word) > -1
+        ),
+      };
     }
   }
 
@@ -109,13 +118,12 @@ async function isPageSensitive() {
         .replace(/[^\w\s]/g, "") +
       " ";
     if (hasBlockedKeyword(descriptionContent, blockedKeywords)) {
-      console.log(
-        "meta description has blocked keyword: " +
-          blockedKeywords.find((word) =>
-            descriptionContent.includes(" " + word + " ")
-          )
-      );
-      return true;
+      return {
+        sensitive: true,
+        word: blockedKeywords.find((word) =>
+          descriptionContent.includes(" " + word + " ")
+        ),
+      };
     }
   }
 
@@ -225,5 +233,64 @@ document.addEventListener("click", (e) => {
       pEl.style.display = "none";
       e.target.textContent = "View triggering word";
     }
+  } else if (e.target.id.includes("view-keywords-btn")) {
+    const pEl = document.getElementById("keywords-p");
+    if (pEl.style.display === "none" || pEl.style.display === "") {
+      pEl.style.display = "block";
+      e.target.textContent = "Hide triggering word";
+    } else {
+      pEl.style.display = "none";
+      e.target.textContent = "View triggering word";
+    }
   }
 });
+
+function appendDOMElements(word) {
+  // Create the first link element for preconnecting to fonts.googleapis.com
+  const link1 = document.createElement("link");
+  link1.rel = "preconnect";
+  link1.href = "https://fonts.googleapis.com";
+
+  // Create the second link element for preconnecting to fonts.gstatic.com with crossorigin attribute
+  const link2 = document.createElement("link");
+  link2.rel = "preconnect";
+  link2.href = "https://fonts.gstatic.com";
+  link2.setAttribute("crossorigin", "");
+
+  // Create the third link element for importing the font stylesheet
+  const link3 = document.createElement("link");
+  link3.rel = "stylesheet";
+  link3.href =
+    "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap";
+
+  // Append all link elements to the <head> of the document
+  document.head.appendChild(link1);
+  document.head.appendChild(link2);
+  document.head.appendChild(link3);
+
+  // Create a div element for the container
+  const msgContainer = document.createElement("div");
+  msgContainer.className = "msg";
+
+  // Create an h1 element for the message
+  const heading = document.createElement("h1");
+  heading.textContent = "This webpage may contain triggering content";
+
+  // Create a button element
+  const button = document.createElement("button");
+  button.id = "view-keywords-btn";
+  button.textContent = "View triggering word";
+
+  // Create a paragraph element
+  const paragraph = document.createElement("p");
+  paragraph.id = "keywords-p";
+  paragraph.textContent = word;
+
+  // Append the elements to the container
+  msgContainer.appendChild(heading);
+  msgContainer.appendChild(button);
+  msgContainer.appendChild(paragraph);
+
+  // Append the container to the document body, or any other desired location
+  document.body.appendChild(msgContainer);
+}

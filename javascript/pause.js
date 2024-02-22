@@ -16,7 +16,7 @@ document.getElementById("pause-once-btn").addEventListener("click", () => {
 pauseBlockerBtn.addEventListener("click", async () => {
   await chrome.storage.sync.get("isBlockerPaused", function (data) {
     // This chrome extension is paused. Unpause it
-    if (data.isBlockerPaused === true) {
+    if (data.isBlockerPaused) {
       pauseBlockerBtn.innerText = "Disable blocker";
       chrome.storage.sync.set({ isBlockerPaused: false });
     } else {
