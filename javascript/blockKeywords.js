@@ -24,11 +24,8 @@ blockKeywordBtn.addEventListener("click", () => {
       blockKeywordMsg.textContent = "input is too long";
       return;
     }
-    blockKeywordMsg.textContent = "";
-
     // Push the new keyword into the list of blocked keywords.
     chrome.runtime.sendMessage({ type: "blockKeyword", keyword: keyword });
-
     blockKeywordMsg.textContent = `"${keyword}" is now blocked`;
   });
 });

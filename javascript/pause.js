@@ -1,5 +1,12 @@
 const pauseBlockerBtn = document.getElementById("pause-blocker-btn");
-const pauseBlockerMsg = document.getElementById("pause-blocker-msg");
+const pauseOnceBtn = document.getElementById("pause-once-btn");
+let isBlockedSite = false;
+
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+  chrome.tabs.sendMessage(tabs[0].id, { type: "isBlocked" }, (response) => {
+    if (response.isBlocked) pauseOnceBtn.style.display = "block";
+  });
+});
 
 chrome.storage.sync.get("isBlockerPaused", function (data) {
   data.isBlockerPaused
@@ -8,7 +15,7 @@ chrome.storage.sync.get("isBlockerPaused", function (data) {
 });
 
 // Remove the CSS hiding the site when the "pause once" button is pressed
-document.getElementById("pause-once-btn").addEventListener("click", () => {
+pauseOnceBtn.addEventListener("click", () => {
   chrome.runtime.sendMessage({ type: "removeCSS" });
 });
 
@@ -25,6 +32,7 @@ pauseBlockerBtn.addEventListener("click", async () => {
       chrome.storage.sync.set({ isBlockerPaused: true });
     }
 
-    pauseBlockerMsg.textContent = "reload page to see changes";
+    document.getElementById("pause-blocker-msg").textContent =
+      "reload page to see changes";
   });
 });

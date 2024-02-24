@@ -16,7 +16,7 @@ let isBlockerPaused = false;
 //   }
 // }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender) => {
   // All asynchronous messages are handled in this anonymous function
   (async () => {
     //Check if the chrome extension is currently paused
@@ -26,14 +26,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // Insert CSS into a webpage
     if (message.type === "insertCSS" && isBlockerPaused === false) {
-      console.log("Sent from tab:", sender.tab);
-      const [activeTab] = await getActiveTab();
-
       // Try to insert CSS
       try {
         chrome.scripting.insertCSS({
           target: {
-            tabId: activeTab.id,
+            tabId: sender.tab.id,
           },
           files: [stylingForBlockedSites],
         });
@@ -42,13 +39,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     } else if (message.type === "removeCSS") {
       // Remove CSS from a webpage
-      const [activeTab] = await getActiveTab();
-
-      // Try to remove CSS
       try {
         chrome.scripting.removeCSS({
           target: {
-            tabId: activeTab.id,
+            tabId: sender.tab.id,
           },
           files: [stylingForBlockedSites],
         });
@@ -66,11 +60,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   }
 });
-
-// Get the currently active tab
-async function getActiveTab() {
-  return ([activeTab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  }));
-}

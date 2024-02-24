@@ -1,4 +1,5 @@
 let blockedKeywords;
+let isBlocked = false; // So that the main page knows when a webpage is blocked or not (so the pause once button can appear or hide accordingly)
 
 console.log("injected");
 // Retrieves the blocked keywords from chrome.storage.local
@@ -65,6 +66,7 @@ function getBlockedKeywords() {
         // Blur the page and add a pop up
         appendDOMElements(pageSensitivity.word);
         chrome.runtime.sendMessage({ type: "insertCSS" });
+        isBlocked = true;
       }
     })();
   }
@@ -297,3 +299,13 @@ function appendDOMElements(word) {
   // Append the container to the document body, or any other desired location
   document.body.appendChild(msgContainer);
 }
+
+// Tell pause.js whether the currently active tab has triggering keywords (if so, pause.js will display the pause once button)
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  console.log("received message: " + message.type);
+  if (message.type === "isBlocked") {
+    // Respond to the message
+    sendResponse({ isBlocked: isBlocked });
+  }
+  return true;
+});

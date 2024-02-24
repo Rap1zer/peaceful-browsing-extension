@@ -12,39 +12,27 @@ body {
 
 h1 {
   margin: 5px;
-}
-
-.website-keyword-btn-container {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-}
-
-.description {
-  font-size: 1.2em;
-}
-
-.websites-btn {
-  background-color: #8fc0a9;
-  font-size: 1.3em;
-  padding: 0.5em 1em;
+  text-decoration: underline;
+  text-decoration-color: #f06e45;
 }
 
 .keywords-btn {
   background-color: #8fc0a9;
   font-size: 1.3em;
+  border-radius: 50px;
   padding: 0.5em 1em;
-  margin-top: 1em;
+  margin-top: 0.8em;
   width: 100%;
 }
 
 .pause-blocker-container {
-  margin: 25px 0 10px 0;
+  margin: 17px 0 10px 0;
 }
 
 .pause-blocker-btn {
   background-color: #8fc0a9;
   padding: 0.4em 0.8em;
+  border-radius: 50px;
   font-size: 1.3em;
   width: 100%;
 }
@@ -58,6 +46,7 @@ footer {
 }
 
 .pause-once-btn {
+  display: none;
   background: white;
   padding: 0;
   color: #bf2020;
