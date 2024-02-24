@@ -27,10 +27,4 @@ pauseBlockerBtn.addEventListener("click", async () => {
 
     pauseBlockerMsg.textContent = "reload page to see changes";
   });
-
-  // const [activeTab] = await chrome.tabs.query({
-  //   active: true,
-  //   currentWindow: true,
-  // });
-  // chrome.tabs.reload(activeTab.id);
 });

@@ -1,6 +1,5 @@
 body {
   width: 230px;
-  height: 300px;
   display: flex;
   margin-top: 8px;
   flex-direction: column;
@@ -64,12 +63,14 @@ footer {
   color: #bf2020;
   text-decoration: underline;
   font-size: 1.2em;
+  margin-top: 8px;
 }
 
 .credits {
   text-decoration: underline;
-  margin-top: 10px;
+  margin-top: 7px;
   font-family: "Inria Serif", sans-serif;
+  font-size: 0.6rem;
 }
 
 .credits a {

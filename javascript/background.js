@@ -1,7 +1,6 @@
 let stylingForBlockedSites = "styling/blocked-style.css";
 
 let isBlockerPaused = false;
-let keywordData;
 // fetchJsonData();
 
 // chrome.storage.sync.clear();
@@ -10,7 +9,7 @@ let keywordData;
 // async function fetchJsonData() {
 //   try {
 //     const response = await fetch("../medicinenet-diseases.json");
-//     keywordData = await response.json();
+//     const keywordData = await response.json();
 //     chrome.storage.local.set({ keywords: keywordData });
 //   } catch (error) {
 //     console.error("Error fetching JSON data:", error);
@@ -60,8 +59,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   })();
 
   if (message.type === "blockKeyword") {
-    keywordData.push(message.keyword);
-    chrome.storage.local.set({ keywords: keywordData });
+    chrome.storage.local.get("keywords", function (result) {
+      let keywordData = result.keywords;
+      keywordData.push(message.keyword);
+      chrome.storage.local.set({ keywords: keywordData });
+    });
   }
 });
 
@@ -72,7 +74,3 @@ async function getActiveTab() {
     currentWindow: true,
   }));
 }
-
-chrome.storage.sync.get("blockedSites", function (data) {
-  blockedHostnames = data.blockedSites; // Use the retrieved array or an empty array
-});

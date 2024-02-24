@@ -16,7 +16,7 @@ blockKeywordBtn.addEventListener("click", () => {
     //Do not add keyword to list if keyword is already in list.
     if (keywords.includes(keyword)) {
       blockKeywordMsg.textContent =
-        "word(s) are already in the list of trigger words";
+        "word(s) are already in the list of trigger keywords";
       return;
     }
 
@@ -29,7 +29,7 @@ blockKeywordBtn.addEventListener("click", () => {
     // Push the new keyword into the list of blocked keywords.
     chrome.runtime.sendMessage({ type: "blockKeyword", keyword: keyword });
 
-    //window.location.href = "../main.html";
+    blockKeywordMsg.textContent = `"${keyword}" is now blocked`;
   });
 });
 
@@ -87,6 +87,7 @@ function loadResults(keywords, length) {
 }
 
 document.addEventListener("click", (e) => {
+  // Delete / unblock a keyword
   if (e.target.id.includes("-keyword-item")) {
     const keyword = e.target.id.split("-")[0];
     chrome.storage.local.get("keywords", function (data) {

@@ -62,6 +62,7 @@ function getBlockedKeywords() {
       // Check if current webpage contains triggering keywords
       const pageSensitivity = await isPageSensitive();
       if (pageSensitivity.sensitive) {
+        // Blur the page and add a pop up
         appendDOMElements(pageSensitivity.word);
         chrome.runtime.sendMessage({ type: "insertCSS" });
       }
@@ -223,6 +224,7 @@ function filterResult(result, keywordFound) {
 }
 
 document.addEventListener("click", (e) => {
+  // The view keywords button comes from the google search results page
   if (e.target.id.includes("view-keywords-btn-")) {
     let num = e.target.id.match(/(\d+)$/)[0];
     const pEl = document.getElementById(`${num}-result`);
@@ -234,6 +236,7 @@ document.addEventListener("click", (e) => {
       e.target.textContent = "View triggering word";
     }
   } else if (e.target.id.includes("view-keywords-btn")) {
+    // The view keywords button comes from a blocked webpage
     const pEl = document.getElementById("keywords-p");
     if (pEl.style.display === "none" || pEl.style.display === "") {
       pEl.style.display = "block";
