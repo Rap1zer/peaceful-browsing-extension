@@ -30,37 +30,36 @@ blockKeywordBtn.addEventListener("click", () => {
   });
 });
 
+// Search button is pressed (enter key)
 document.addEventListener("keydown", (event) => {
-  chrome.storage.local.get("keywords", function (data) {
-    const keywords = data.keywords;
-    if (event.key === "Enter") {
-      if (document.activeElement === searchKeywordInput) {
-        let value = searchKeywordInput.value.toLowerCase().trim();
-        if (!value) {
-          keywordsList.innerHTML = "";
-          return;
-        }
-        let results = [];
-        for (let i = 0; i < keywords.length; i++) {
-          if (keywords[i].includes(value)) {
-            results.push(keywords[i]);
-          }
-        }
-
-        if (results.length === 0) {
-          keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
-        } else {
-          loadResults(results);
-        }
+  if (event.key === "Enter" && document.activeElement === searchKeywordInput) {
+    chrome.storage.local.get("keywords", function (data) {
+      const keywords = data.keywords;
+      let value = searchKeywordInput.value.toLowerCase().trim();
+      if (!value) {
+        keywordsList.innerHTML = "";
+        return;
       }
-    }
-  });
+
+      // Sort by similarity to the target string
+      keywords.sort((s, t) => {
+        return levenshteinDistance(value, s) - levenshteinDistance(value, t);
+      });
+
+      const results = keywords.splice(0, 100);
+      if (results.length === 0) {
+        keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
+      } else {
+        loadResults(results);
+      }
+    });
+  }
 });
 
 function loadResults(keywords, length) {
   keywordsList.innerHTML = "";
   const index = length ? length : 0;
-  const resultsLength = Math.min(50 + index, keywords.length);
+  const resultsLength = Math.min(20 + index, keywords.length);
   let colSwitch = true;
   for (let i = 0; i < resultsLength; i++) {
     const col = colSwitch ? "#f4f3ef" : "white";
@@ -108,4 +107,25 @@ function updateColours() {
     list[i].style.backgroundColor = col;
     colSwitch = !colSwitch;
   }
+}
+
+// Calculates the number of modifications required to transform one string into another
+function levenshteinDistance(s, t) {
+  if (!s.length) return t.length;
+  if (!t.length) return s.length;
+  const arr = [];
+  for (let i = 0; i <= t.length; i++) {
+    arr[i] = [i];
+    for (let j = 1; j <= s.length; j++) {
+      arr[i][j] =
+        i === 0
+          ? j
+          : Math.min(
+              arr[i - 1][j] + 1,
+              arr[i][j - 1] + 1,
+              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
+            );
+    }
+  }
+  return arr[t.length][s.length];
 }
