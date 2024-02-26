@@ -83,12 +83,11 @@ async function isPageSensitive() {
   const title = document.querySelector("title");
   if (title) {
     const titleText = processText(title);
-    if (hasBlockedKeyword(titleText, blockedKeywords)) {
+    const keyword = hasBlockedKeyword(titleText, blockedKeywords);
+    if (keyword) {
       return {
         sensitive: true,
-        word: blockedKeywords.find((word) =>
-          titleText.includes(" " + word + " ")
-        ),
+        word: keyword,
       };
     }
   }
@@ -120,12 +119,11 @@ async function isPageSensitive() {
         .toLowerCase()
         .replace(/[^\w\s]/g, "") +
       " ";
-    if (hasBlockedKeyword(descriptionContent, blockedKeywords)) {
+    const keyword = hasBlockedKeyword(descriptionContent, blockedKeywords);
+    if (keyword) {
       return {
         sensitive: true,
-        word: blockedKeywords.find((word) =>
-          descriptionContent.includes(" " + word + " ")
-        ),
+        word: keyword,
       };
     }
   }
@@ -158,11 +156,9 @@ async function filterPages(blockedKeywords) {
     if (titleEl) {
       isSearchResult = true;
       const title = processText(titleEl);
-      if (hasBlockedKeyword(title, blockedKeywords)) {
-        filterResult(
-          result,
-          blockedKeywords.find((word) => title.includes(" " + word + " "))
-        );
+      const keyword = hasBlockedKeyword(title, blockedKeywords);
+      if (keyword) {
+        filterResult(result, keyword);
         return;
       }
     }
@@ -173,32 +169,30 @@ async function filterPages(blockedKeywords) {
       isSearchResult = true;
       // Get the description from the descriptionDiv
       const description = processText(descriptionDiv);
+      const keyword = hasBlockedKeyword(description, blockedKeywords);
       // Check if unwanted keywords are in the description
-      if (hasBlockedKeyword(description, blockedKeywords)) {
-        filterResult(
-          result,
-          blockedKeywords.find((word) => description.includes(" " + word + " "))
-        );
+      if (keyword) {
+        filterResult(result, keyword);
         return;
       }
     }
 
-    // Check if unwanted keywords are in the description of the main result
-    const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
-    if (mainResultDescriptionDiv) {
-      isSearchResult = true;
-      // Get the description from the descriptionDiv
-      const description = processText(mainResultDescriptionDiv);
-      console.log(description);
-      // Check if unwanted keywords are in the description
-      if (hasBlockedKeyword(description, blockedKeywords)) {
-        filterResult(
-          result,
-          blockedKeywords.find((word) => description.includes(" " + word + " "))
-        );
-        return;
-      }
-    }
+    // Check if unwanted keywords are in the description of the main result L3Ezfd
+    // const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
+    // if (mainResultDescriptionDiv) {
+    //   isSearchResult = true;
+    //   // Get the description from the descriptionDiv
+    //   const description = processText(mainResultDescriptionDiv);
+    //   console.log(description);
+    //   // Check if unwanted keywords are in the description
+    //   if (hasBlockedKeyword(description, blockedKeywords)) {
+    //     filterResult(
+    //       result,
+    //       blockedKeywords.find((word) => description.includes(" " + word + " "))
+    //     );
+    //     return;
+    //   }
+    // }
 
     // If it is a search result and it does not have any unwanted keywords, add a class marking it as a "safe-site"
     if (isSearchResult) {
@@ -212,7 +206,7 @@ function processText(el) {
 }
 
 function hasBlockedKeyword(str, array) {
-  return array.some((word) => str.includes(" " + word + " "));
+  return array.find((word) => str.includes(" " + word + " "));
 }
 
 let resultNum = 0;
