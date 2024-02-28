@@ -16,7 +16,9 @@ chrome.storage.sync.get("isBlockerPaused", function (data) {
 
 // Remove the CSS hiding the site when the "pause once" button is pressed
 pauseOnceBtn.addEventListener("click", () => {
-  chrome.runtime.sendMessage({ type: "removeCSS" });
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.runtime.sendMessage({ tabId: tabs[0].id, type: "removeCSS" });
+  });
 });
 
 // Disable or enable the chrome extension

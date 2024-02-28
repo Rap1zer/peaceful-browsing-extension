@@ -42,7 +42,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       try {
         chrome.scripting.removeCSS({
           target: {
-            tabId: sender.tab.id,
+            tabId: message.tabId,
           },
           files: [stylingForBlockedSites],
         });

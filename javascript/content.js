@@ -64,7 +64,7 @@ function getBlockedKeywords() {
       const pageSensitivity = await isPageSensitive();
       if (pageSensitivity.sensitive) {
         // Blur the page and add a pop up
-        appendDOMElements(pageSensitivity.word);
+        appendDOMElements(pageSensitivity.words);
         chrome.runtime.sendMessage({ type: "insertCSS" });
         isBlocked = true;
       }
@@ -80,15 +80,14 @@ async function isPageSensitive() {
     console.log(error);
   }
 
+  let keywordsFound = [];
+
   const title = document.querySelector("title");
   if (title) {
     const titleText = processText(title);
-    const keyword = hasBlockedKeyword(titleText, blockedKeywords);
-    if (keyword) {
-      return {
-        sensitive: true,
-        word: keyword,
-      };
+    const keywords = hasBlockedKeyword(titleText, blockedKeywords);
+    if (keywords) {
+      keywordsFound = keywordsFound.concat(keywords);
     }
   }
 
@@ -98,15 +97,10 @@ async function isPageSensitive() {
       .getAttribute("content")
       .toLowerCase()
       .split(","); // Split text content into an array of keywords
-    if (
-      keywordsContent.some((word) => binarySearch(blockedKeywords, word) > -1)
-    ) {
-      return {
-        sensitive: true,
-        word: keywordsContent.find(
-          (word) => binarySearch(blockedKeywords, word) > -1
-        ),
-      };
+    const keywords = hasBlockedKeyword(keywordsContent, blockedKeywords);
+    console.log(keywords);
+    if (keywords) {
+      keywordsFound = keywordsFound.concat(keywords);
     }
   }
 
@@ -119,16 +113,17 @@ async function isPageSensitive() {
         .toLowerCase()
         .replace(/[^\w\s]/g, "") +
       " ";
-    const keyword = hasBlockedKeyword(descriptionContent, blockedKeywords);
-    if (keyword) {
-      return {
-        sensitive: true,
-        word: keyword,
-      };
+    const keywords = hasBlockedKeyword(descriptionContent, blockedKeywords);
+    if (keywords) {
+      keywordsFound = keywordsFound.concat(keywords);
     }
   }
 
-  console.log("page is not sensitive");
+  if (keywordsFound.length > 0) {
+    keywordsFound = removeDuplicates(keywordsFound);
+    return { sensitive: true, words: keywordsFound };
+  }
+
   return false;
 }
 
@@ -140,65 +135,56 @@ async function filterPages(blockedKeywords) {
     console.log(error);
   }
 
-  //Select and remove search results with unwanted keywords [class^="g Ww4FFb"]
-  const searchResults = document.querySelectorAll('[class^="g"]');
+  //Select and remove search results with unwanted keywords
+  const searchResults = document.querySelectorAll('[class^="g "]');
   searchResults.forEach((result) => {
     // Check whether the object is a safe site
     if (result.classList.contains("safe-site")) {
       return;
     }
 
-    // Bool which checks whether an object selected is a search result leading to a site.
-    let isSearchResult = false;
+    let keywordsFound = [];
 
     const titleEl = result.querySelector("h3");
     //Check if unwanted keywords are in the title
     if (titleEl) {
-      isSearchResult = true;
       const title = processText(titleEl);
-      const keyword = hasBlockedKeyword(title, blockedKeywords);
-      if (keyword) {
-        filterResult(result, keyword);
-        return;
-      }
+      const keywords = hasBlockedKeyword(title, blockedKeywords);
+      if (keywords) keywordsFound = keywordsFound.concat(keywords);
     }
 
     // Check if unwanted keywords are in the description
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
-      isSearchResult = true;
-      // Get the description from the descriptionDiv
       const description = processText(descriptionDiv);
-      const keyword = hasBlockedKeyword(description, blockedKeywords);
-      // Check if unwanted keywords are in the description
-      if (keyword) {
-        filterResult(result, keyword);
-        return;
+      const keywords = hasBlockedKeyword(description, blockedKeywords);
+      if (keywords) keywordsFound = keywordsFound.concat(keywords);
+    }
+
+    // Check if unwanted keywords are in the description of the main result
+    const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
+    if (mainResultDescriptionDiv) {
+      const description = processText(mainResultDescriptionDiv);
+      const keywords = hasBlockedKeyword(description, blockedKeywords);
+      if (keywords) {
+        keywordsFound = keywordsFound.concat(keywords);
+        mainResultDescriptionDiv.textContent = "";
       }
     }
 
-    // Check if unwanted keywords are in the description of the main result L3Ezfd
-    // const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
-    // if (mainResultDescriptionDiv) {
-    //   isSearchResult = true;
-    //   // Get the description from the descriptionDiv
-    //   const description = processText(mainResultDescriptionDiv);
-    //   console.log(description);
-    //   // Check if unwanted keywords are in the description
-    //   if (hasBlockedKeyword(description, blockedKeywords)) {
-    //     filterResult(
-    //       result,
-    //       blockedKeywords.find((word) => description.includes(" " + word + " "))
-    //     );
-    //     return;
-    //   }
-    // }
-
-    // If it is a search result and it does not have any unwanted keywords, add a class marking it as a "safe-site"
-    if (isSearchResult) {
-      result.classList.add("safe-site");
+    if (keywordsFound.length > 0) {
+      keywordsFound = removeDuplicates(keywordsFound);
+      filterResult(result, keywordsFound);
+      return;
     }
+
+    // If it does not have any unwanted keywords, add a class marking it as a "safe-site"
+    result.classList.add("safe-site");
   });
+
+  // Filters the "People also ask section"
+  // const askSection = document.querySelectorAll('[class^="wDYxhc"]');
+  // askSection.forEach((result) => {});
 }
 
 function processText(el) {
@@ -206,15 +192,26 @@ function processText(el) {
 }
 
 function hasBlockedKeyword(str, array) {
-  return array.find((word) => str.includes(" " + word + " "));
+  const filteredArr = array.filter((word) => str.includes(" " + word + " "));
+  if (filteredArr.length > 0) return filteredArr;
+  return undefined;
+}
+
+// Remove duplicates from an array
+function removeDuplicates(arr) {
+  let unique = arr.reduce(function (acc, curr) {
+    if (!acc.includes(curr)) acc.push(curr);
+    return acc;
+  }, []);
+  return unique;
 }
 
 let resultNum = 0;
-function filterResult(result, keywordFound) {
+function filterResult(result, keywordsFound) {
   result.innerHTML = `
   <h1>This result may potentially be triggering</h1>
-  <button id="view-keywords-btn-${resultNum}">View triggering word</button>
-  <p id="${resultNum}-result">${keywordFound}</p>`;
+  <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
+  <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
   result.classList.add("blocked-result");
   resultNum++;
 }
@@ -226,25 +223,25 @@ document.addEventListener("click", (e) => {
     const pEl = document.getElementById(`${num}-result`);
     if (pEl.style.display === "none" || pEl.style.display === "") {
       pEl.style.display = "block";
-      e.target.textContent = "Hide triggering word";
+      e.target.textContent = "Hide triggering word(s)";
     } else {
       pEl.style.display = "none";
-      e.target.textContent = "View triggering word";
+      e.target.textContent = "View triggering word(s)";
     }
   } else if (e.target.id.includes("view-keywords-btn")) {
     // The view keywords button comes from a blocked webpage
     const pEl = document.getElementById("keywords-p");
     if (pEl.style.display === "none" || pEl.style.display === "") {
       pEl.style.display = "block";
-      e.target.textContent = "Hide triggering word";
+      e.target.textContent = "Hide triggering word(s)";
     } else {
       pEl.style.display = "none";
-      e.target.textContent = "View triggering word";
+      e.target.textContent = "View triggering word(s)";
     }
   }
 });
 
-function appendDOMElements(word) {
+function appendDOMElements(words) {
   // Create the first link element for preconnecting to fonts.googleapis.com
   const link1 = document.createElement("link");
   link1.rel = "preconnect";
@@ -278,19 +275,17 @@ function appendDOMElements(word) {
   // Create a button element
   const button = document.createElement("button");
   button.id = "view-keywords-btn";
-  button.textContent = "View triggering word";
+  button.textContent = "View triggering word(s)";
 
   // Create a paragraph element
   const paragraph = document.createElement("p");
   paragraph.id = "keywords-p";
-  paragraph.textContent = word;
+  paragraph.textContent = words.join(", ");
 
-  // Append the elements to the container
+  // Append the elements to the container and then to the document
   msgContainer.appendChild(heading);
   msgContainer.appendChild(button);
   msgContainer.appendChild(paragraph);
-
-  // Append the container to the document body, or any other desired location
   document.body.appendChild(msgContainer);
 }
 
