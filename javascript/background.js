@@ -1,20 +1,21 @@
 let stylingForBlockedSites = "styling/blocked-style.css";
-
 let isBlockerPaused = false;
-// fetchJsonData();
 
-// chrome.storage.sync.clear();
-// chrome.storage.sync.set({ isBlockerPaused: false });
+chrome.storage.local.get("keywords", function (data) {
+  if (!data) initialise();
+});
 
-// async function fetchJsonData() {
-//   try {
-//     const response = await fetch("../medicinenet-diseases.json");
-//     const keywordData = await response.json();
-//     chrome.storage.local.set({ keywords: keywordData });
-//   } catch (error) {
-//     console.error("Error fetching JSON data:", error);
-//   }
-// }
+async function initialise() {
+  chrome.storage.sync.set({ isBlockerPaused: false });
+  // Fetch keywords from JSON file
+  try {
+    const response = await fetch("../medicinenet-diseases.json");
+    const keywordData = await response.json();
+    chrome.storage.local.set({ keywords: keywordData });
+  } catch (error) {
+    console.error("Error fetching JSON data:", error);
+  }
+}
 
 chrome.runtime.onMessage.addListener((message, sender) => {
   // All asynchronous messages are handled in this anonymous function

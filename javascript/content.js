@@ -136,7 +136,8 @@ async function filterPages(blockedKeywords) {
   }
 
   //Select and remove search results with unwanted keywords
-  const searchResults = document.querySelectorAll('[class^="g "]');
+  const searchResults = document.querySelectorAll('[class^="g"]');
+
   searchResults.forEach((result) => {
     // Check whether the object is a safe site
     if (result.classList.contains("safe-site")) {
@@ -181,10 +182,6 @@ async function filterPages(blockedKeywords) {
     // If it does not have any unwanted keywords, add a class marking it as a "safe-site"
     result.classList.add("safe-site");
   });
-
-  // Filters the "People also ask section"
-  // const askSection = document.querySelectorAll('[class^="wDYxhc"]');
-  // askSection.forEach((result) => {});
 }
 
 function processText(el) {
@@ -291,7 +288,6 @@ function appendDOMElements(words) {
 
 // Tell pause.js whether the currently active tab has triggering keywords (if so, pause.js will display the pause once button)
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  console.log("received message: " + message.type);
   if (message.type === "isBlocked") {
     // Respond to the message
     sendResponse({ isBlocked: isBlocked });
