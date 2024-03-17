@@ -12,7 +12,10 @@ blockKeywordBtn.addEventListener("click", () => {
   // Fetch blocked keywords from background.js and add the keyword to the array
   chrome.storage.local.get("keywords", function (keywords) {
     keywords = keywords.keywords;
-    const keyword = keywordInput.value.trim().toLowerCase();
+    const keyword = keywordInput.value
+      .trim()
+      .toLowerCase()
+      .replace(/[.,:;()"*?!/]/g, "");
     //Do not add keyword to list if keyword is already in list.
     if (keywords.includes(keyword)) {
       blockKeywordMsg.textContent =

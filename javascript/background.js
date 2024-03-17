@@ -1,6 +1,6 @@
 let stylingForBlockedSites = "styling/blocked-style.css";
 let isBlockerPaused = false;
-
+//chrome.storage.local.clear();
 chrome.storage.local.get("keywords", function (data) {
   if (!data.keywords) initialise();
 });

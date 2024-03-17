@@ -112,7 +112,7 @@ async function isPageSensitive() {
       metaDescription
         .getAttribute("content")
         .toLowerCase()
-        .replace(/[^\w\s]/g, "") + // replaces all non-word characters with ""
+        .replace(/[.,:;()"*?!/]/g, "") + // replaces special characters with ""
       " ";
     const keywords = hasBlockedKeyword(descriptionContent, blockedKeywords);
     if (keywords) {
@@ -185,7 +185,7 @@ async function filterPages(blockedKeywords) {
 }
 
 function processText(el) {
-  return " " + el.textContent.toLowerCase().replace(/[.,]/g, "") + " ";
+  return " " + el.textContent.toLowerCase().replace(/[.,:;()"*?!/]/g, "") + " ";
 }
 
 function hasBlockedKeyword(str, array) {
