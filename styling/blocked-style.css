@@ -1,5 +1,5 @@
 body > *:not(.msg) {
-  filter: blur(10px) !important;
+  filter: blur(10px) grayscale(100%) !important;
 }
 
 .msg {

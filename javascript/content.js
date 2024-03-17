@@ -87,6 +87,7 @@ async function isPageSensitive() {
     const titleText = processText(title);
     const keywords = hasBlockedKeyword(titleText, blockedKeywords);
     if (keywords) {
+      console.log("has blocked keywords in the title");
       keywordsFound = keywordsFound.concat(keywords);
     }
   }
@@ -94,12 +95,14 @@ async function isPageSensitive() {
   // Check if unwanted keywords are in the meta keywords
   const metaKeywords = document.querySelector('meta[name="keywords"]');
   if (metaKeywords) {
-    const keywordsContent = metaKeywords
-      .getAttribute("content")
-      .toLowerCase()
-      .split(","); // Split text content into an array of keywords
+    const keywordsContent =
+      " " +
+      metaKeywords.getAttribute("content").toLowerCase().replace(/,/g, " ") +
+      " ";
     const keywords = hasBlockedKeyword(keywordsContent, blockedKeywords);
+    console.log(keywordsContent);
     if (keywords) {
+      console.log("has blocked keywords in meta keywords");
       keywordsFound = keywordsFound.concat(keywords);
     }
   }
@@ -114,6 +117,7 @@ async function isPageSensitive() {
         .toLowerCase()
         .replace(/[.,:;()"*?!/]/g, "") + // replaces special characters with ""
       " ";
+    console.log(descriptionContent);
     const keywords = hasBlockedKeyword(descriptionContent, blockedKeywords);
     if (keywords) {
       keywordsFound = keywordsFound.concat(keywords);
@@ -157,6 +161,7 @@ async function filterPages() {
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
       const description = processText(descriptionDiv);
+      console.log(description);
       const keywords = hasBlockedKeyword(description, blockedKeywords);
       if (keywords) keywordsFound = keywordsFound.concat(keywords);
     }
@@ -218,21 +223,21 @@ document.addEventListener("click", (e) => {
   if (e.target.id.includes("view-keywords-btn-")) {
     let num = e.target.id.match(/(\d+)$/)[0]; // match consecutive digits at the end of the id
     const pEl = document.getElementById(`${num}-result`);
-    toggleKeywordVisibility(pEl);
+    toggleKeywordVisibility(pEl, e.target);
   } else if (e.target.id.includes("view-keywords-btn")) {
     // The view keywords button comes from a blocked webpage
     const pEl = document.getElementById("keywords-p");
-    toggleKeywordVisibility(pEl);
+    toggleKeywordVisibility(pEl, e.target);
   }
 });
 
-function toggleKeywordVisibility(pEl) {
+function toggleKeywordVisibility(pEl, btn) {
   if (pEl.style.display === "none" || pEl.style.display === "") {
     pEl.style.display = "block";
-    e.target.textContent = "Hide triggering word(s)";
+    btn.textContent = "Hide triggering word(s)";
   } else {
     pEl.style.display = "none";
-    e.target.textContent = "View triggering word(s)";
+    btn.textContent = "View triggering word(s)";
   }
 }
 
