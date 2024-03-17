@@ -38,28 +38,34 @@ blockKeywordBtn.addEventListener("click", () => {
 // Search button is pressed (enter key)
 document.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && document.activeElement === searchKeywordInput) {
-    chrome.storage.local.get("keywords", function (data) {
-      const keywords = data.keywords;
-      let value = searchKeywordInput.value.toLowerCase().trim();
-      if (!value) {
-        keywordsList.innerHTML = "";
-        return;
-      }
-
-      // Sort by similarity to the target string
-      keywords.sort((s, t) => {
-        return levenshteinDistance(value, s) - levenshteinDistance(value, t);
-      });
-
-      const results = keywords.splice(0, 100);
-      if (results.length === 0) {
-        keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
-      } else {
-        loadResults(results);
-      }
-    });
+    search();
   }
 });
+
+document.getElementById("magnifying-glass").addEventListener("click", search);
+
+function search() {
+  chrome.storage.local.get("keywords", function (data) {
+    const keywords = data.keywords;
+    let value = searchKeywordInput.value.toLowerCase().trim();
+    if (!value) {
+      keywordsList.innerHTML = "";
+      return;
+    }
+
+    // Sort by similarity to the target string
+    keywords.sort((s, t) => {
+      return levenshteinDistance(value, s) - levenshteinDistance(value, t);
+    });
+
+    const results = keywords.splice(0, 100);
+    if (results.length === 0) {
+      keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
+    } else {
+      loadResults(results);
+    }
+  });
+}
 
 function loadResults(keywords, length) {
   keywordsList.innerHTML = "";
