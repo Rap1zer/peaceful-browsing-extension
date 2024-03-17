@@ -3,8 +3,8 @@ body {
   max-height: 481px;
 }
 
-.description {
-  margin-right: 23px;
+p {
+  font-size: 0.9rem;
 }
 
 .block-new-keyword-container {
@@ -17,6 +17,10 @@ body {
   width: 100%;
   border-right: none;
   padding-left: 0.6rem;
+}
+
+.description {
+  margin: 10px 0;
 }
 
 .block-new-keyword-btn {
@@ -34,7 +38,6 @@ body {
 
 .keyword-list-description {
   margin: 18px 0 6px 0;
-  font-size: 1.1em;
   padding: 0;
 }
 
