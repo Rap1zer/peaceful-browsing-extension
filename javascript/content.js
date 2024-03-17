@@ -207,6 +207,7 @@ function removeDuplicates(arr) {
   return unique;
 }
 
+// Block the search result
 let resultNum = 0;
 function filterResult(result, keywordsFound) {
   result.innerHTML = `

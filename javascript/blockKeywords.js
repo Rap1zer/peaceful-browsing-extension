@@ -20,8 +20,7 @@ blockKeywordBtn.addEventListener("click", () => {
     //Do not add keyword to list if keyword is already in list.
     if (keywords.includes(keyword)) {
       blockKeywordMsg.textContent =
-        keyword +
-        " is already in the list of keywords. (Capitalization and special characters are ignored but nothing will be affected)";
+        keyword + " is already in the list of keywords";
       return;
     }
 
@@ -31,7 +30,7 @@ blockKeywordBtn.addEventListener("click", () => {
     }
     // Push the new keyword into the list of blocked keywords.
     chrome.runtime.sendMessage({ type: "blockKeyword", keyword: keyword });
-    blockKeywordMsg.textContent = `"${keyword}" is now blocked. (Capitalization and special characters are ignored but nothing will be affected)`;
+    blockKeywordMsg.textContent = `"${keyword}" is now blocked`;
   });
 });
 

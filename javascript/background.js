@@ -7,7 +7,7 @@ chrome.storage.local.get("keywords", function (data) {
 
 async function initialise() {
   chrome.storage.sync.set({ isBlockerPaused: false });
-  // Fetch keywords from JSON file
+  // Fetch keywords from JSON file and store it in local storage
   try {
     const response = await fetch("../medicinenet-diseases.json");
     const keywordData = await response.json();
@@ -27,7 +27,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
     // Insert CSS into a webpage
     if (message.type === "insertCSS" && isBlockerPaused === false) {
-      // Try to insert CSS
+      // Insert CSS to blur website and add styling to the pop-up
       try {
         chrome.scripting.insertCSS({
           target: {
@@ -39,7 +39,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         console.error(`failed to insert CSS: ${err}`);
       }
     } else if (message.type === "removeCSS") {
-      // Remove CSS from a webpage
+      // Remove CSS from the webpage to unblock it
       try {
         chrome.scripting.removeCSS({
           target: {
@@ -53,6 +53,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     }
   })();
 
+  // Block a keyword and insert it into local storage
   if (message.type === "blockKeyword") {
     chrome.storage.local.get("keywords", function (result) {
       let keywordData = result.keywords;
