@@ -129,7 +129,7 @@ async function isPageSensitive() {
 }
 
 // Filter search results with unwanted keywords.
-async function filterPages(blockedKeywords) {
+async function filterPages() {
   try {
     blockedKeywords = await getBlockedKeywords();
   } catch (error) {
@@ -157,7 +157,6 @@ async function filterPages(blockedKeywords) {
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
       const description = processText(descriptionDiv);
-      console.log(description);
       const keywords = hasBlockedKeyword(description, blockedKeywords);
       if (keywords) keywordsFound = keywordsFound.concat(keywords);
     }

@@ -12,6 +12,7 @@ body > *:not(.msg) {
   padding: 1em !important;
   border-radius: 2px !important;
   box-shadow: 0 0 15px #a0a0a0 !important;
+  max-width: 45vw !important;
 }
 
 .msg h1 {
