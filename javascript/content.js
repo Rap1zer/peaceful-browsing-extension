@@ -1,7 +1,6 @@
 let blockedKeywords;
-let isBlocked = false; // So that the main page knows when a webpage is blocked or not (so the pause once button can appear or hide accordingly)
+let isBlocked = false;
 
-console.log("injected");
 // Retrieves the blocked keywords from chrome.storage.local
 function getBlockedKeywords() {
   return new Promise((resolve, reject) => {
@@ -23,6 +22,7 @@ function getBlockedKeywords() {
       resolve(data);
     });
   });
+
   if (data.isBlockerPaused) return;
 
   if (
@@ -48,7 +48,6 @@ function getBlockedKeywords() {
     // Filter the search results for triggering content
     filterPages(blockedKeywords);
 
-    // Create a new MutationObserver with a callback function
     // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
     const observer = new MutationObserver(function () {
       filterPages(blockedKeywords);
@@ -82,6 +81,7 @@ async function isPageSensitive() {
 
   let keywordsFound = [];
 
+  // Check if unwanted keywords are in the title of the webpage
   const title = document.querySelector("title");
   if (title) {
     const titleText = processText(title);
@@ -91,6 +91,7 @@ async function isPageSensitive() {
     }
   }
 
+  // Check if unwanted keywords are in the meta keywords
   const metaKeywords = document.querySelector('meta[name="keywords"]');
   if (metaKeywords) {
     const keywordsContent = metaKeywords
@@ -98,12 +99,12 @@ async function isPageSensitive() {
       .toLowerCase()
       .split(","); // Split text content into an array of keywords
     const keywords = hasBlockedKeyword(keywordsContent, blockedKeywords);
-    console.log(keywords);
     if (keywords) {
       keywordsFound = keywordsFound.concat(keywords);
     }
   }
 
+  // Check if unwanted keywords are in the meta description
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) {
     const descriptionContent =
@@ -111,7 +112,7 @@ async function isPageSensitive() {
       metaDescription
         .getAttribute("content")
         .toLowerCase()
-        .replace(/[^\w\s]/g, "") +
+        .replace(/[^\w\s]/g, "") + // replaces all non-word characters with ""
       " ";
     const keywords = hasBlockedKeyword(descriptionContent, blockedKeywords);
     if (keywords) {
@@ -135,14 +136,12 @@ async function filterPages(blockedKeywords) {
     console.log(error);
   }
 
-  //Select and remove search results with unwanted keywords
+  // Select and remove search results with unwanted keywords
   const searchResults = document.querySelectorAll('[class^="g"]');
 
   searchResults.forEach((result) => {
-    // Check whether the object is a safe site
-    if (result.classList.contains("safe-site")) {
-      return;
-    }
+    // No need to analyse the result if it has the "safe-el" class
+    if (result.classList.contains("safe-el")) return;
 
     let keywordsFound = [];
 
@@ -158,6 +157,7 @@ async function filterPages(blockedKeywords) {
     const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
     if (descriptionDiv) {
       const description = processText(descriptionDiv);
+      console.log(description);
       const keywords = hasBlockedKeyword(description, blockedKeywords);
       if (keywords) keywordsFound = keywordsFound.concat(keywords);
     }
@@ -180,12 +180,12 @@ async function filterPages(blockedKeywords) {
     }
 
     // If it does not have any unwanted keywords, add a class marking it as a "safe-site"
-    result.classList.add("safe-site");
+    result.classList.add("safe-el");
   });
 }
 
 function processText(el) {
-  return " " + el.textContent.toLowerCase().replace(/[^\w\s]/g, "") + " ";
+  return " " + el.textContent.toLowerCase().replace(/[.,]/g, "") + " ";
 }
 
 function hasBlockedKeyword(str, array) {
@@ -214,30 +214,30 @@ function filterResult(result, keywordsFound) {
 }
 
 document.addEventListener("click", (e) => {
+  // View / hide the triggering keywords of a triggering result or webpage
   // The view keywords button comes from the google search results page
   if (e.target.id.includes("view-keywords-btn-")) {
-    let num = e.target.id.match(/(\d+)$/)[0];
+    let num = e.target.id.match(/(\d+)$/)[0]; // match consecutive digits at the end of the id
     const pEl = document.getElementById(`${num}-result`);
-    if (pEl.style.display === "none" || pEl.style.display === "") {
-      pEl.style.display = "block";
-      e.target.textContent = "Hide triggering word(s)";
-    } else {
-      pEl.style.display = "none";
-      e.target.textContent = "View triggering word(s)";
-    }
+    toggleKeywordVisibility(pEl);
   } else if (e.target.id.includes("view-keywords-btn")) {
     // The view keywords button comes from a blocked webpage
     const pEl = document.getElementById("keywords-p");
-    if (pEl.style.display === "none" || pEl.style.display === "") {
-      pEl.style.display = "block";
-      e.target.textContent = "Hide triggering word(s)";
-    } else {
-      pEl.style.display = "none";
-      e.target.textContent = "View triggering word(s)";
-    }
+    toggleKeywordVisibility(pEl);
   }
 });
 
+function toggleKeywordVisibility(pEl) {
+  if (pEl.style.display === "none" || pEl.style.display === "") {
+    pEl.style.display = "block";
+    e.target.textContent = "Hide triggering word(s)";
+  } else {
+    pEl.style.display = "none";
+    e.target.textContent = "View triggering word(s)";
+  }
+}
+
+// Append a pop-up to a wepbage containing triggering keyword(s)
 function appendDOMElements(words) {
   // Create the first link element for preconnecting to fonts.googleapis.com
   const link1 = document.createElement("link");

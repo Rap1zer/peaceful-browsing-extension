@@ -2,7 +2,7 @@ let stylingForBlockedSites = "styling/blocked-style.css";
 let isBlockerPaused = false;
 
 chrome.storage.local.get("keywords", function (data) {
-  if (!data) initialise();
+  if (!data.keywords) initialise();
 });
 
 async function initialise() {
