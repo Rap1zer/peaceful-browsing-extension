@@ -291,11 +291,12 @@ function appendDOMElements(words) {
   document.body.appendChild(msgContainer);
 }
 
+// Removed to follow Google's program policy
 // Tell pause.js whether the currently active tab has triggering keywords (if so, pause.js will display the pause once button)
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  if (message.type === "isBlocked") {
-    // Respond to the message
-    sendResponse({ isBlocked: isBlocked });
-  }
-  return true;
-});
+// chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+//   if (message.type === "isBlocked") {
+//     // Respond to the message
+//     sendResponse({ isBlocked: isBlocked });
+//   }
+//   return true;
+// });

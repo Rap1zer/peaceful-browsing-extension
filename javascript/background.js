@@ -38,18 +38,18 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       } catch (err) {
         console.error(`failed to insert CSS: ${err}`);
       }
-    } else if (message.type === "removeCSS") {
-      // Remove CSS from the webpage to unblock it
-      try {
-        chrome.scripting.removeCSS({
-          target: {
-            tabId: message.tabId,
-          },
-          files: [stylingForBlockedSites],
-        });
-      } catch (err) {
-        console.error(`failed to remove CSS: ${err}`);
-      }
+      // } else if (message.type === "removeCSS") { removed to follow Google's program policy
+      //   // Remove CSS from the webpage to unblock it
+      //   try {
+      //     chrome.scripting.removeCSS({
+      //       target: {
+      //         tabId: message.tabId,
+      //       },
+      //       files: [stylingForBlockedSites],
+      //     });
+      //   } catch (err) {
+      //     console.error(`failed to remove CSS: ${err}`);
+      //   }
     }
   })();
 
