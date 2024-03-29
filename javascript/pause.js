@@ -1,5 +1,5 @@
 const pauseBlockerBtn = document.getElementById("pause-blocker-btn");
-const pauseOnceBtn = document.getElementById("pause-once-btn");
+//const pauseOnceBtn = document.getElementById("pause-once-btn");
 let isBlockedSite = false;
 
 // Removed to follow Google's program policy
