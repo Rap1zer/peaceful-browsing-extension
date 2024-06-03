@@ -29,107 +29,78 @@ function getBlockedKeywords() {
     window.location.hostname == "www.google.com" &&
     window.location.pathname == "/search"
   ) {
-    // Create first link element
-    const link1 = document.createElement("link");
-    link1.href =
-      "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap";
-    link1.rel = "stylesheet";
-
-    // Create second link element
-    const link2 = document.createElement("link");
-    link2.href =
-      "https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap";
-    link2.rel = "stylesheet";
-
-    // Append both link elements to the document's head
-    document.head.appendChild(link1);
-    document.head.appendChild(link2);
-
-    // Filter the search results for triggering content
-    filterPages(blockedKeywords);
+    const links = [
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,400;0,700;1,400&display=swap",
+      },
+    ];
+    appendGoogleLinks(links);
+    filterPages();
 
     // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
-    const observer = new MutationObserver(function () {
-      filterPages(blockedKeywords);
-    });
-
+    const observer = new MutationObserver(filterPages);
     const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
-    const config = { childList: true, subtree: true };
-
-    if (targetNode) observer.observe(targetNode, config);
+    if (targetNode)
+      observer.observe(targetNode, { childList: true, subtree: true });
   } else {
-    (async () => {
-      // Check if current webpage contains triggering keywords
-      const pageSensitivity = await isPageSensitive();
-      if (pageSensitivity.sensitive) {
-        // Blur the page and add a pop up
-        appendDOMElements(pageSensitivity.words);
-        chrome.runtime.sendMessage({ type: "insertCSS" });
-        isBlocked = true;
-      }
-    })();
+    // Check if current webpage contains triggering keywords
+    const pageSensitivity = await isPageSensitive();
+    if (pageSensitivity.sensitive) {
+      // Blur the page and add a pop up
+      appendDOMElements(pageSensitivity.words);
+      chrome.runtime.sendMessage({ type: "insertCSS" });
+      isBlocked = true;
+    }
   }
 })();
+
+// Append Google links
+function appendGoogleLinks(links) {
+  links.forEach(({ rel, href, crossorigin }) => {
+    const link = document.createElement("link");
+    link.rel = rel;
+    link.href = href;
+    if (crossorigin) link.setAttribute("crossorigin", crossorigin);
+    document.head.appendChild(link);
+  });
+}
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
 async function isPageSensitive() {
   try {
     blockedKeywords = await getBlockedKeywords();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   let keywordsFound = [];
 
-  // Check if unwanted keywords are in the title of the webpage
-  const title = document.querySelector("title");
-  if (title) {
-    const titleText = processText(title);
-    const keywords = hasBlockedKeyword(titleText, blockedKeywords);
-    if (keywords) {
-      console.log("has blocked keywords in the title");
-      keywordsFound = keywordsFound.concat(keywords);
-    }
-  }
+  const elementsToCheck = [
+    document.querySelector("title"),
+    document.querySelector('meta[name="keywords"]'),
+    document.querySelector('meta[name="description"]'),
+  ];
 
-  // Check if unwanted keywords are in the meta keywords
-  const metaKeywords = document.querySelector('meta[name="keywords"]');
-  if (metaKeywords) {
-    const keywordsContent =
-      " " +
-      metaKeywords.getAttribute("content").toLowerCase().replace(/,/g, " ") +
-      " ";
-    const keywords = hasBlockedKeyword(keywordsContent, blockedKeywords);
-    console.log(keywordsContent);
-    if (keywords) {
-      console.log("has blocked keywords in meta keywords");
-      keywordsFound = keywordsFound.concat(keywords);
-    }
-  }
-
-  // Check if unwanted keywords are in the meta description
-  const metaDescription = document.querySelector('meta[name="description"]');
-  if (metaDescription) {
-    const descriptionContent =
-      " " +
-      metaDescription
-        .getAttribute("content")
-        .toLowerCase()
-        .replace(/[.,:;()"*?!/]/g, "") + // replaces special characters with ""
-      " ";
-    console.log(descriptionContent);
-    const keywords = hasBlockedKeyword(descriptionContent, blockedKeywords);
-    if (keywords) {
-      keywordsFound = keywordsFound.concat(keywords);
-    }
-  }
+  // Retrieve all the triggering keywords in each element.
+  elementsToCheck.forEach((el) => {
+    if (!el) return; // If no element is found in the page, skip forEach iteration
+    let text = el.getAttribute("content") || el.textContent;
+    if (!text) return; // If element has no content attribute, skip forEach iteration
+    text = processText(text);
+    const keywords = hasBlockedKeyword(text);
+    if (keywords) keywordsFound.push(...keywords);
+  });
 
   if (keywordsFound.length > 0) {
-    keywordsFound = removeDuplicates(keywordsFound);
-    return { sensitive: true, words: keywordsFound };
+    return { sensitive: true, words: removeDuplicates(keywordsFound) };
   }
 
-  return false;
+  return { sensitive: false };
 }
 
 // Filter search results with unwanted keywords.
@@ -137,7 +108,7 @@ async function filterPages() {
   try {
     blockedKeywords = await getBlockedKeywords();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 
   // Select and remove search results with unwanted keywords
@@ -148,34 +119,19 @@ async function filterPages() {
     if (result.classList.contains("safe-el")) return;
 
     let keywordsFound = [];
+    const elementsToCheck = [
+      result.querySelector("h3"),
+      result.querySelector('[class^="VwiC3b"]'),
+      result.querySelector('[class^="hgKElc"]'),
+    ];
 
-    const titleEl = result.querySelector("h3");
-    //Check if unwanted keywords are in the title
-    if (titleEl) {
-      const title = processText(titleEl);
-      const keywords = hasBlockedKeyword(title, blockedKeywords);
-      if (keywords) keywordsFound = keywordsFound.concat(keywords);
-    }
-
-    // Check if unwanted keywords are in the description
-    const descriptionDiv = result.querySelector('[class^="VwiC3b"]');
-    if (descriptionDiv) {
-      const description = processText(descriptionDiv);
-      console.log(description);
-      const keywords = hasBlockedKeyword(description, blockedKeywords);
-      if (keywords) keywordsFound = keywordsFound.concat(keywords);
-    }
-
-    // Check if unwanted keywords are in the description of the main result
-    const mainResultDescriptionDiv = result.querySelector('[class^="hgKElc"]');
-    if (mainResultDescriptionDiv) {
-      const description = processText(mainResultDescriptionDiv);
-      const keywords = hasBlockedKeyword(description, blockedKeywords);
-      if (keywords) {
-        keywordsFound = keywordsFound.concat(keywords);
-        mainResultDescriptionDiv.textContent = "";
-      }
-    }
+    elementsToCheck.forEach((el) => {
+      if (!el) return; // If no element is found in the result, skip forEach iteration
+      if (!el.textContent) return; // If element has no text content, skip forEach iteration
+      const text = processText(el.textContent);
+      const keywords = hasBlockedKeyword(text);
+      if (keywords) keywordsFound.push(...keywords);
+    });
 
     if (keywordsFound.length > 0) {
       keywordsFound = removeDuplicates(keywordsFound);
@@ -183,17 +139,18 @@ async function filterPages() {
       return;
     }
 
-    // If it does not have any unwanted keywords, add a class marking it as a "safe-site"
     result.classList.add("safe-el");
   });
 }
 
 function processText(el) {
-  return " " + el.textContent.toLowerCase().replace(/[.,:;()"*?!/]/g, "") + " ";
+  return " " + el.toLowerCase().replace(/[.,:;()"*?!/]/g, "") + " ";
 }
 
-function hasBlockedKeyword(str, array) {
-  const filteredArr = array.filter((word) => str.includes(" " + word + " "));
+function hasBlockedKeyword(str) {
+  const filteredArr = blockedKeywords.filter((word) =>
+    str.includes(" " + word + " ")
+  );
   if (filteredArr.length > 0) return filteredArr;
   return undefined;
 }
@@ -233,61 +190,33 @@ document.addEventListener("click", (e) => {
 });
 
 function toggleKeywordVisibility(pEl, btn) {
-  if (pEl.style.display === "none" || pEl.style.display === "") {
-    pEl.style.display = "block";
-    btn.textContent = "Hide triggering word(s)";
-  } else {
-    pEl.style.display = "none";
-    btn.textContent = "View triggering word(s)";
-  }
+  const isHidden = pEl.style.display === "none" || pEl.style.display === "";
+  pEl.style.display = isHidden ? "block" : "none";
+  btn.textContent = isHidden
+    ? "Hide triggering word(s)"
+    : "View triggering word(s)";
 }
 
 // Append a pop-up to a wepbage containing triggering keyword(s)
 function appendDOMElements(words) {
-  // Create the first link element for preconnecting to fonts.googleapis.com
-  const link1 = document.createElement("link");
-  link1.rel = "preconnect";
-  link1.href = "https://fonts.googleapis.com";
+  const links = [
+    { rel: "preconnect", href: "https://fonts.googleapis.com" },
+    { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+    {
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap",
+    },
+  ];
 
-  // Create the second link element for preconnecting to fonts.gstatic.com with crossorigin attribute
-  const link2 = document.createElement("link");
-  link2.rel = "preconnect";
-  link2.href = "https://fonts.gstatic.com";
-  link2.setAttribute("crossorigin", "");
+  appendGoogleLinks(links);
 
-  // Create the third link element for importing the font stylesheet
-  const link3 = document.createElement("link");
-  link3.rel = "stylesheet";
-  link3.href =
-    "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap";
-
-  // Append all link elements to the <head> of the document
-  document.head.appendChild(link1);
-  document.head.appendChild(link2);
-  document.head.appendChild(link3);
-
-  // Create a div element for the container
   const msgContainer = document.createElement("div");
   msgContainer.className = "msg";
+  msgContainer.innerHTML = `
+    <h1>This webpage may contain triggering content</h1>
+    <button id="view-keywords-btn">View triggering word(s)</button>
+    <p id="keywords-p">${words.join(", ")}</p>`;
 
-  // Create an h1 element for the message
-  const heading = document.createElement("h1");
-  heading.textContent = "This webpage may contain triggering content";
-
-  // Create a button element
-  const button = document.createElement("button");
-  button.id = "view-keywords-btn";
-  button.textContent = "View triggering word(s)";
-
-  // Create a paragraph element
-  const paragraph = document.createElement("p");
-  paragraph.id = "keywords-p";
-  paragraph.textContent = words.join(", ");
-
-  // Append the elements to the container and then to the document
-  msgContainer.appendChild(heading);
-  msgContainer.appendChild(button);
-  msgContainer.appendChild(paragraph);
   document.body.appendChild(msgContainer);
 }
 
