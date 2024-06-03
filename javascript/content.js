@@ -1,29 +1,32 @@
-let blockedKeywords;
+let blockedKeywords = [];
 let isBlocked = false;
 
 // Retrieves the blocked keywords from chrome.storage.local
-function getBlockedKeywords() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get("keywords", function (result) {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(result.keywords);
-      }
+async function fetchBlockedKeywords() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      chrome.storage.local.get("keywords", function (result) {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result.keywords);
+        }
+      });
     });
-  });
+    blockedKeywords = result || [];
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-// Check if the current page is a Google Search page
-// Wrap in an async function to first check if the chrome extension / blocker is paused
+// Initialize the extension
 (async () => {
   const data = await new Promise((resolve) => {
-    chrome.storage.sync.get("isBlockerPaused", function (data) {
-      resolve(data);
-    });
+    chrome.storage.sync.get("isBlockerPaused", resolve);
   });
-
   if (data.isBlockerPaused) return;
+
+  await fetchBlockedKeywords();
 
   if (
     window.location.hostname == "www.google.com" &&
@@ -72,12 +75,6 @@ function appendGoogleLinks(links) {
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
 async function isPageSensitive() {
-  try {
-    blockedKeywords = await getBlockedKeywords();
-  } catch (error) {
-    console.error(error);
-  }
-
   let keywordsFound = [];
 
   const elementsToCheck = [
@@ -105,12 +102,6 @@ async function isPageSensitive() {
 
 // Filter search results with unwanted keywords.
 async function filterPages() {
-  try {
-    blockedKeywords = await getBlockedKeywords();
-  } catch (error) {
-    console.error(error);
-  }
-
   // Select and remove search results with unwanted keywords
   const searchResults = document.querySelectorAll('[class^="g"]');
 
@@ -168,7 +159,7 @@ function removeDuplicates(arr) {
 let resultNum = 0;
 function filterResult(result, keywordsFound) {
   result.innerHTML = `
-  <h1>This result may potentially be triggering</h1>
+  <h1>This result may be triggering</h1>
   <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
   <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
   result.classList.add("blocked-result");
@@ -177,14 +168,8 @@ function filterResult(result, keywordsFound) {
 
 document.addEventListener("click", (e) => {
   // View / hide the triggering keywords of a triggering result or webpage
-  // The view keywords button comes from the google search results page
-  if (e.target.id.includes("view-keywords-btn-")) {
-    let num = e.target.id.match(/(\d+)$/)[0]; // match consecutive digits at the end of the id
-    const pEl = document.getElementById(`${num}-result`);
-    toggleKeywordVisibility(pEl, e.target);
-  } else if (e.target.id.includes("view-keywords-btn")) {
-    // The view keywords button comes from a blocked webpage
-    const pEl = document.getElementById("keywords-p");
+  if (e.target.id.includes("view-keywords-btn")) {
+    const pEl = e.target.nextElementSibling;
     toggleKeywordVisibility(pEl, e.target);
   }
 });
@@ -219,13 +204,3 @@ function appendDOMElements(words) {
 
   document.body.appendChild(msgContainer);
 }
-
-// Removed to follow Google's program policy
-// Tell pause.js whether the currently active tab has triggering keywords (if so, pause.js will display the pause once button)
-// chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-//   if (message.type === "isBlocked") {
-//     // Respond to the message
-//     sendResponse({ isBlocked: isBlocked });
-//   }
-//   return true;
-// });
