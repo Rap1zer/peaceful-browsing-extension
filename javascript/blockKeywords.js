@@ -25,7 +25,7 @@ blockKeywordBtn.addEventListener("click", () => {
     }
 
     if (keyword.length >= 50) {
-      blockKeywordMsg.textContent = "input is too long";
+      blockKeywordMsg.textContent = "Input is too long";
       return;
     }
     // Push the new keyword into the list of blocked keywords.
@@ -52,16 +52,28 @@ function search() {
       return;
     }
 
-    // Sort by similarity to the target string
-    keywords.sort((s, t) => {
-      return levenshteinDistance(value, s) - levenshteinDistance(value, t);
-    });
+    const maxDist = Math.ceil(value.length * (1 / 3));
+    const topResults = [];
 
-    const results = keywords.splice(0, 100);
-    if (results.length === 0) {
+    // Get 50 or less keywords that are within 'maxDist' levenshtein distance of the search query
+    for (let keyword of keywords) {
+      const dist = levenshteinDistance(value, keyword);
+      if (dist <= maxDist) {
+        if (topResults.length < 50) {
+          topResults.push({ keyword, dist });
+          topResults.sort((a, b) => a.dist - b.dist); // Sort to ensure closest keywords appear first
+        } else if (dist < topResults[topResults.length - 1].dist) {
+          topResults.pop();
+          topResults.push({ keyword, dist });
+          topResults.sort((a, b) => a.dist - b.dist); // Sort to ensure closest keywords appear first
+        }
+      }
+    }
+
+    if (topResults.length === 0) {
       keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
     } else {
-      loadResults(results);
+      loadResults(topResults.map((item) => item.keyword));
     }
   });
 }

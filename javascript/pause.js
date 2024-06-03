@@ -22,6 +22,6 @@ pauseBlockerBtn.addEventListener("click", async () => {
     }
 
     document.getElementById("pause-blocker-msg").textContent =
-      "reload page to see changes";
+      "Reload page to see changes";
   });
 });
