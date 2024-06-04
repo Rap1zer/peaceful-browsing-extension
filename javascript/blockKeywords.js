@@ -4,18 +4,21 @@ const blockKeywordMsg = document.getElementById("block-new-keyword-msg");
 const blockKeywordBtn = document.getElementById("block-new-keyword-btn");
 const keywordsList = document.getElementById("blocked-keywords-list");
 
-blockKeywordBtn.addEventListener("click", () => {
+blockKeywordBtn.addEventListener("click", blockKeyword);
+
+function blockKeyword() {
+  const keyword = keywordInput.value
+    .trim()
+    .toLowerCase()
+    .replace(/[.,:;()"*?!/]/g, "");
+
   // Do not block keyword if the keyword input field is empty (there is no keyword)
   if (!keywordInput.value.trim()) {
     return;
   }
   // Fetch blocked keywords from background.js and add the keyword to the array
-  chrome.storage.local.get("keywords", function (keywords) {
-    keywords = keywords.keywords;
-    const keyword = keywordInput.value
-      .trim()
-      .toLowerCase()
-      .replace(/[.,:;()"*?!/]/g, "");
+  chrome.storage.local.get("keywords", function (data) {
+    keywords = data.keywords || [];
 
     //Do not add keyword to list if keyword is already in list.
     if (keywords.includes(keyword)) {
@@ -32,57 +35,57 @@ blockKeywordBtn.addEventListener("click", () => {
     chrome.runtime.sendMessage({ type: "blockKeyword", keyword: keyword });
     blockKeywordMsg.textContent = `"${keyword}" is now blocked`;
   });
-});
+}
 
-// Search button is pressed (enter key)
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && document.activeElement === searchKeywordInput) {
-    search();
+// Enter key is pressed while input field is active
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    if (document.activeElement === searchKeywordInput) {
+      search();
+    } else if (document.activeElement === keywordInput) {
+      blockKeyword();
+    }
   }
 });
 
 document.getElementById("magnifying-glass").addEventListener("click", search);
 
 function search() {
+  const value = searchKeywordInput.value.toLowerCase().trim();
+  if (!value) {
+    keywordsList.innerHTML = "";
+    return;
+  }
+
   chrome.storage.local.get("keywords", function (data) {
     const keywords = data.keywords;
-    let value = searchKeywordInput.value.toLowerCase().trim();
-    if (!value) {
-      keywordsList.innerHTML = "";
-      return;
-    }
-
     const maxDist = Math.ceil(value.length * (1 / 3));
-    const topResults = [];
+    const results = [];
 
-    // Get 50 or less keywords that are within 'maxDist' levenshtein distance of the search query
+    // get all keywords within 'maxDist' levenshtein distance
     for (let keyword of keywords) {
       const dist = levenshteinDistance(value, keyword);
       if (dist <= maxDist) {
-        if (topResults.length < 50) {
-          topResults.push({ keyword, dist });
-          topResults.sort((a, b) => a.dist - b.dist); // Sort to ensure closest keywords appear first
-        } else if (dist < topResults[topResults.length - 1].dist) {
-          topResults.pop();
-          topResults.push({ keyword, dist });
-          topResults.sort((a, b) => a.dist - b.dist); // Sort to ensure closest keywords appear first
-        }
+        results.push({ keyword, dist });
       }
     }
 
-    if (topResults.length === 0) {
+    // Sort the results so the most similar keywords appear at the top
+    results.sort((a, b) => a.dist - b.dist);
+
+    if (results.length === 0) {
       keywordsList.innerHTML = `<p class="no-results-msg">No results</p>`;
     } else {
-      loadResults(topResults.map((item) => item.keyword));
+      loadResults(results.map((item) => item.keyword));
     }
   });
 }
 
-function loadResults(keywords, length) {
+function loadResults(keywords, length = 0) {
   keywordsList.innerHTML = "";
-  const index = length ? length : 0;
-  const resultsLength = Math.min(20 + index, keywords.length);
+  const resultsLength = Math.min(20 + length, keywords.length);
   let colSwitch = true;
+
   for (let i = 0; i < resultsLength; i++) {
     const col = colSwitch ? "#f4f3ef" : "white";
     keywordsList.innerHTML += `
@@ -135,19 +138,24 @@ function updateColours() {
 function levenshteinDistance(s, t) {
   if (!s.length) return t.length;
   if (!t.length) return s.length;
-  const arr = [];
-  for (let i = 0; i <= t.length; i++) {
-    arr[i] = [i];
-    for (let j = 1; j <= s.length; j++) {
-      arr[i][j] =
-        i === 0
-          ? j
-          : Math.min(
-              arr[i - 1][j] + 1,
-              arr[i][j - 1] + 1,
-              arr[i - 1][j - 1] + (s[j - 1] === t[i - 1] ? 0 : 1)
-            );
+
+  const dp = Array.from({ length: s.length + 1 }, () =>
+    Array(t.length + 1).fill(0)
+  );
+
+  for (let i = 0; i <= s.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= t.length; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= s.length; i++) {
+    for (let j = 1; j <= t.length; j++) {
+      const cost = s[i - 1] === t[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1, // deletion
+        dp[i][j - 1] + 1, // insertion
+        dp[i - 1][j - 1] + cost // substitution
+      );
     }
   }
-  return arr[t.length][s.length];
+
+  return dp[s.length][t.length];
 }
