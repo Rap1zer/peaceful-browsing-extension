@@ -176,7 +176,7 @@ document.addEventListener("click", (e) => {
 
 function toggleKeywordVisibility(pEl, btn) {
   const isHidden = pEl.style.display === "none" || pEl.style.display === "";
-  pEl.style.display = isHidden ? "block" : "none";
+  pEl.style.setProperty("display", isHidden ? "block" : "none", "important");
   btn.textContent = isHidden
     ? "Hide triggering word(s)"
     : "View triggering word(s)";
@@ -196,7 +196,7 @@ function appendDOMElements(words) {
   appendGoogleLinks(links);
 
   const msgContainer = document.createElement("div");
-  msgContainer.className = "msg";
+  msgContainer.className = "health_anxiety_msg";
   msgContainer.innerHTML = `
     <h1>This webpage may contain triggering content</h1>
     <button id="view-keywords-btn">View triggering word(s)</button>

@@ -1,8 +1,9 @@
-body > *:not(.msg) {
+body > *:not(.health_anxiety_msg) {
   filter: blur(10px) grayscale(100%) !important;
 }
 
-.msg {
+.health_anxiety_msg {
+  all: initial !important;
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
@@ -15,17 +16,21 @@ body > *:not(.msg) {
   max-width: 45vw !important;
 }
 
-.msg h1 {
+.health_anxiety_msg * {
   all: unset !important;
+  all: initial !important;
+  all: revert !important;
+}
+
+.health_anxiety_msg h1 {
   display: block !important;
   font-family: "Inria Serif", serif !important;
   font-size: 1.4rem !important;
   font-weight: 700 !important;
-  margin-bottom: 0.4em !important;
+  margin: 0 0 0.4em !important;
 }
 
-.msg button {
-  all: unset !important;
+.health_anxiety_msg button {
   background-color: #8fc0a9 !important;
   font-family: "Inria Sans", sans-serif !important;
   border: 0 !important;
@@ -34,9 +39,8 @@ body > *:not(.msg) {
   font-size: 0.8rem !important;
 }
 
-.msg p {
-  all: unset;
-  display: none;
+.health_anxiety_msg p {
+  display: none !important;
   font-family: sans-serif !important;
   font-size: 0.9rem !important;
   margin-top: 0.2em !important;
