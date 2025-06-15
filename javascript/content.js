@@ -287,10 +287,23 @@ function appendDOMElements(words) {
 
   const msgContainer = document.createElement("div");
   msgContainer.className = "health_anxiety_msg";
-  msgContainer.innerHTML = `
-    <h1>This webpage may contain triggering content</h1>
-    <button id="view-keywords-btn">View triggering word(s)</button>
-    <p id="keywords-p">${words.join(", ")}</p>`;
+
+  // Create h1
+  const heading = document.createElement("h1");
+  heading.textContent = "This webpage may contain triggering content";
+  msgContainer.appendChild(heading);
+
+  // Create button
+  const button = document.createElement("button");
+  button.id = "view-keywords-btn";
+  button.textContent = "View triggering word(s)";
+  msgContainer.appendChild(button);
+
+  // Create paragraph
+  const paragraph = document.createElement("p");
+  paragraph.id = "keywords-p";
+  paragraph.textContent = words.join(", ");
+  msgContainer.appendChild(paragraph);
 
   document.body.appendChild(msgContainer);
   console.log("Popup appended to the DOM.");
