@@ -1,6 +1,7 @@
 console.log("Extension script loaded.");
 
 let blockedKeywords = [];
+let blockedRegexes = [];
 let isBlocked = false;
 
 // Retrieves the blocked keywords from chrome.storage.local
@@ -17,6 +18,7 @@ async function fetchBlockedKeywords() {
       });
     });
     blockedKeywords = result || [];
+    compileBlockedRegexes();
     console.log("Blocked keywords fetched:", blockedKeywords);
   } catch (error) {
     console.error("Error fetching blocked keywords:", error);
@@ -56,7 +58,7 @@ async function fetchBlockedKeywords() {
     filterPages();
 
     const observer = new MutationObserver(filterPages);
-    const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
+    const targetNode = document.body.getElementsByClassName("GyAeWb")[0]; // CHANGE THIS TO USE MORE RELIABLE SELECTOR
     if (targetNode) {
       console.log("Setting up MutationObserver on search results container.");
       observer.observe(targetNode, { childList: true, subtree: true });
@@ -129,13 +131,19 @@ async function isPageSensitive() {
   return { sensitive: false };
 }
 
+function compileBlockedRegexes() {
+  blockedRegexes = blockedKeywords.map(
+    (word) => new RegExp(`\\b${escapeRegex(word)}\\b`, 'i')
+  );
+}
+
 function getSearchResults() {
   const h3Elements = document.querySelectorAll('#rso a > h3:not([data-processed])');
   const resultElements = new Set();
 
   h3Elements.forEach((h3) => {
     let container = h3.closest('div');
-    const anchorEl = container.querySelector('a');
+    const anchorText = container.querySelector('a')?.textContent || "";
     while (container && container !== document.body) {
       if (container.classList.contains("safe-el") || container.classList.contains("blocked-result")) break;
       const containerChildren = container.querySelectorAll('div, span');
@@ -146,7 +154,7 @@ function getSearchResults() {
         return (
           text &&
           text.length > 30 && // Heuristics: is snippet text, not noise
-          !anchorEl.textContent.includes(text) && // Heuristics: does not contain anchor text
+          !anchorText.includes(text) && // Heuristics: does not contain anchor text
           !el.contains(h3) &&
           el !== h3);
       });
@@ -181,6 +189,7 @@ function extractTextNodes(result) {
 
 // Filter search results with unwanted keywords.
 async function filterPages() {
+  console.time("filterPages");
   const results = getSearchResults();
   console.log(`Found ${results.length} new results.`);
 
@@ -200,6 +209,9 @@ async function filterPages() {
       result.classList.add("safe-el");
     }
   });
+
+  console.timeEnd("filterPages");
+  console.log("Finished filtering search results.");
 }
 
 
@@ -208,9 +220,10 @@ function processText(el) {
 }
 
 function hasBlockedKeyword(str) {
-  for (const word of blockedKeywords) {
-    const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i'); // 'i' for case-insensitive
-    if (regex.test(str)) return word; // early return for first match
+  for (let i = 0; i < blockedRegexes.length; i++) {
+    if (blockedRegexes[i].test(str)) {
+      return blockedKeywords[i];
+    }
   }
   return undefined;
 }
@@ -219,19 +232,9 @@ function escapeRegex(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape special regex characters
 }
 
-// Remove duplicates from an array
-function removeDuplicates(arr) {
-  let unique = arr.reduce(function (acc, curr) {
-    if (!acc.includes(curr)) acc.push(curr);
-    return acc;
-  }, []);
-  return unique;
-}
-
 // Block the search result
 let resultNum = 0;
 function filterResult(result, keywordsFound) {
-  console.log(`Blocking a search result for keywords: ${keywordsFound.join(", ")}`);
   result.textContent = '';
 
   // Create h1
