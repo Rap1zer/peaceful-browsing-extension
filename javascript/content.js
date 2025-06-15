@@ -131,39 +131,39 @@ async function isPageSensitive() {
 }
 
 function getSearchResults() {
-  const h3Elements = document.querySelectorAll('#rso a > h3');
+  const h3Elements = document.querySelectorAll('#rso a > h3:not([data-processed])');
   const resultElements = new Set();
 
   h3Elements.forEach((h3) => {
     let container = h3.closest('div');
+    const anchorEl = container.querySelector('a');
     while (container && container !== document.body) {
-      const hasH3 = container.querySelector('h3');
-      const hasA = container.querySelector('a');
-      const textLength = hasH3?.textContent?.trim().length || 0 + hasA?.textContent?.trim().length || 0;
-      const minSnippetLength = 20 + textLength;
-
       if (container.classList.contains("safe-el") || container.classList.contains("blocked-result")) break;
+      const containerChildren = container.querySelectorAll('div, span');
 
-      const hasTextOutsideH3 = Array.from(container.querySelectorAll('div, span')).some((el) => {
+      // Loop through each element in container and check if it contains text
+      const hasTextOutsideH3 = Array.from(containerChildren).some((el) => {
         const text = el.textContent?.trim();
         return (
           text &&
-          text.length > minSnippetLength &&       // Heuristic: real snippet, not noise
-          !el.contains(h3) &&       // Skip containers *around* h3
-          el !== h3                 // Not the h3 itself
-        );
+          text.length > 30 && // Heuristics: is snippet text, not noise
+          !anchorEl.textContent.includes(text) && // Heuristics: does not contain anchor text
+          !el.contains(h3) &&
+          el !== h3);
       });
 
-      if (hasH3 && hasTextOutsideH3) {
-        console.log("Found result element:", container, " with text:", container.textContent);
+      if (hasTextOutsideH3) {
+        //console.log("Found result element:", container, " with text:", container.textContent);
         resultElements.add(container);
         break;
       }
 
       container = container.parentElement;
     }
-  });
 
+    h3.setAttribute("data-processed", true);
+  });
+  
   return Array.from(resultElements);
 }
 
@@ -183,11 +183,9 @@ function extractTextNodes(result) {
 // Filter search results with unwanted keywords.
 async function filterPages() {
   const results = getSearchResults();
-  console.log(`Found ${results.length} results.`);
+  console.log(`Found ${results.length} new results.`);
 
-  results.forEach((result, index) => {
-    if (result.classList.contains("safe-el")) return;
-
+  results.forEach((result) => {
     const textBlocks = extractTextNodes(result);
     const keywordsFound = [];
 
@@ -207,15 +205,19 @@ async function filterPages() {
 
 
 function processText(el) {
-  return " " + el.toLowerCase().replace(/[.,:;()"*?!/]/g, "") + " ";
+  return el.toLowerCase().replace(/[.,:;()"*?!/]/g, "");
 }
 
 function hasBlockedKeyword(str) {
-  const filteredArr = blockedKeywords.filter((word) =>
-    str.includes(" " + word + " ")
-  );
-  if (filteredArr.length > 0) return filteredArr;
+  for (const word of blockedKeywords) {
+    const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i'); // 'i' for case-insensitive
+    if (regex.test(str)) return [word]; // early return for first match
+  }
   return undefined;
+}
+
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape special regex characters
 }
 
 // Remove duplicates from an array
@@ -231,11 +233,11 @@ function removeDuplicates(arr) {
 let resultNum = 0;
 function filterResult(result, keywordsFound) {
   console.log(`Blocking a search result for keywords: ${keywordsFound.join(", ")}`);
-  // result.innerHTML = `
-  // <h1>This result may be triggering</h1>
-  // <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
-  // <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
-  // result.classList.add("blocked-result");
+  result.innerHTML = `
+  <h1>This result may be triggering</h1>
+  <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
+  <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
+  result.classList.add("blocked-result");
   resultNum++;
 }
 
