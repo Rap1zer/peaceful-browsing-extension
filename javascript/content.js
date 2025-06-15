@@ -233,10 +233,25 @@ function removeDuplicates(arr) {
 let resultNum = 0;
 function filterResult(result, keywordsFound) {
   console.log(`Blocking a search result for keywords: ${keywordsFound.join(", ")}`);
-  result.innerHTML = `
-  <h1>This result may be triggering</h1>
-  <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
-  <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
+  result.textContent = '';
+
+  // Create h1
+  const heading = document.createElement('h1');
+  heading.textContent = 'This result may be triggering';
+  result.appendChild(heading);
+
+  // Create button
+  const button = document.createElement('button');
+  button.id = `view-keywords-btn-${resultNum}`;
+  button.textContent = 'View triggering word(s)';
+  result.appendChild(button);
+
+  // Create paragraph
+  const paragraph = document.createElement('p');
+  paragraph.id = `${resultNum}-result`;
+  paragraph.textContent = keywordsFound.join(", ");
+  result.appendChild(paragraph);
+
   result.classList.add("blocked-result");
   resultNum++;
 }
