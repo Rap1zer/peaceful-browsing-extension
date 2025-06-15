@@ -187,16 +187,16 @@ async function filterPages() {
 
   results.forEach((result) => {
     const textBlocks = extractTextNodes(result);
-    const keywordsFound = [];
+    const keywordsFound = new Set();
 
     textBlocks.forEach((text) => {
       const processed = processText(text);
       const found = hasBlockedKeyword(processed);
-      if (found) keywordsFound.push(...found);
+      if (found) keywordsFound.add(found);
     });
 
-    if (keywordsFound.length > 0) {
-      filterResult(result, removeDuplicates(keywordsFound));
+    if (keywordsFound.size > 0) {
+      filterResult(result, Array.from(keywordsFound));
     } else {
       result.classList.add("safe-el");
     }
@@ -211,7 +211,7 @@ function processText(el) {
 function hasBlockedKeyword(str) {
   for (const word of blockedKeywords) {
     const regex = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i'); // 'i' for case-insensitive
-    if (regex.test(str)) return [word]; // early return for first match
+    if (regex.test(str)) return word; // early return for first match
   }
   return undefined;
 }
