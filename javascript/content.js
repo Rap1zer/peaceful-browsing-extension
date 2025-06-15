@@ -69,6 +69,7 @@ async function fetchBlockedKeywords() {
     console.log("Page sensitivity check result:", pageSensitivity);
     if (pageSensitivity.sensitive) {
       console.log("Page is sensitive. Applying blur and popup.");
+      console.log(pageSensitivity.words);
       appendDOMElements(pageSensitivity.words);
       chrome.runtime.sendMessage({ type: "insertCSS" });
       isBlocked = true;
@@ -94,7 +95,7 @@ function appendGoogleLinks(links) {
 // Return if page's title, meta description or meta keywords contains a filtered keyword
 async function isPageSensitive() {
   console.log("Running page sensitivity check...");
-  let keywordsFound = [];
+  let keywordsFound = new Set();
 
   const elementsToCheck = [
     document.querySelector("title"),
@@ -115,15 +116,13 @@ async function isPageSensitive() {
     text = processText(text);
     const keywords = hasBlockedKeyword(text);
     if (keywords) {
-      console.log("Blocked keywords found in element:", keywords);
-      keywordsFound.push(...keywords);
+      keywordsFound.add(keywords);
     }
   });
 
-  if (keywordsFound.length > 0) {
-    const uniqueKeywords = removeDuplicates(keywordsFound);
-    console.log("Page contains sensitive keywords:", uniqueKeywords);
-    return { sensitive: true, words: uniqueKeywords };
+  if (keywordsFound.size > 0) {
+    console.log("Page contains sensitive keywords:", keywordsFound);
+    return { sensitive: true, words: Array.from(keywordsFound) };
   }
 
   console.log("No sensitive keywords found on page.");
@@ -271,14 +270,11 @@ function toggleKeywordVisibility(pEl, btn) {
   btn.textContent = isHidden
     ? "Hide triggering word(s)"
     : "View triggering word(s)";
-  console.log(
-    `Toggled keyword visibility to ${isHidden ? "shown" : "hidden"} for button ${btn.id}`
-  );
 }
 
 // Append a pop-up to a webpage containing triggering keyword(s)
 function appendDOMElements(words) {
-  console.log("Appending popup DOM elements with keywords:", words);
+  // Append the Google font links
   const links = [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
     { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
@@ -287,7 +283,6 @@ function appendDOMElements(words) {
       href: "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap",
     },
   ];
-
   appendGoogleLinks(links);
 
   const msgContainer = document.createElement("div");
