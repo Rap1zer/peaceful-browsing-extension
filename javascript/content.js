@@ -1,9 +1,12 @@
+console.log("Extension script loaded.");
+
 let blockedKeywords = [];
 let isBlocked = false;
 
 // Retrieves the blocked keywords from chrome.storage.local
 async function fetchBlockedKeywords() {
   try {
+    console.log("Fetching blocked keywords from storage...");
     const result = await new Promise((resolve, reject) => {
       chrome.storage.local.get("keywords", function (result) {
         if (chrome.runtime.lastError) {
@@ -14,17 +17,23 @@ async function fetchBlockedKeywords() {
       });
     });
     blockedKeywords = result || [];
+    console.log("Blocked keywords fetched:", blockedKeywords);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching blocked keywords:", error);
   }
 }
 
 // Initialize the extension
 (async () => {
+  console.log("Initializing extension...");
   const data = await new Promise((resolve) => {
     chrome.storage.sync.get("isBlockerPaused", resolve);
   });
-  if (data.isBlockerPaused) return;
+  console.log("Blocker paused status:", data.isBlockerPaused);
+  if (data.isBlockerPaused) {
+    console.log("Blocker is paused. Exiting initialization.");
+    return;
+  }
 
   await fetchBlockedKeywords();
 
@@ -32,6 +41,7 @@ async function fetchBlockedKeywords() {
     window.location.hostname == "www.google.com" &&
     window.location.pathname == "/search"
   ) {
+    console.log("On Google Search results page.");
     const links = [
       {
         rel: "stylesheet",
@@ -45,25 +55,32 @@ async function fetchBlockedKeywords() {
     appendGoogleLinks(links);
     filterPages();
 
-    // The observer will watch for changes being made to the Search Results DOM and filter any new search results that get loaded
     const observer = new MutationObserver(filterPages);
     const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
-    if (targetNode)
+    if (targetNode) {
+      console.log("Setting up MutationObserver on search results container.");
       observer.observe(targetNode, { childList: true, subtree: true });
+    } else {
+      console.warn("Search results container not found.");
+    }
   } else {
-    // Check if current webpage contains triggering keywords
+    console.log("Checking if current page is sensitive.");
     const pageSensitivity = await isPageSensitive();
+    console.log("Page sensitivity check result:", pageSensitivity);
     if (pageSensitivity.sensitive) {
-      // Blur the page and add a pop up
+      console.log("Page is sensitive. Applying blur and popup.");
       appendDOMElements(pageSensitivity.words);
       chrome.runtime.sendMessage({ type: "insertCSS" });
       isBlocked = true;
+    } else {
+      console.log("Page is not sensitive.");
     }
   }
 })();
 
 // Append Google links
 function appendGoogleLinks(links) {
+  console.log("Appending Google font links...");
   links.forEach(({ rel, href, crossorigin }) => {
     const link = document.createElement("link");
     link.rel = rel;
@@ -71,10 +88,12 @@ function appendGoogleLinks(links) {
     if (crossorigin) link.setAttribute("crossorigin", crossorigin);
     document.head.appendChild(link);
   });
+  console.log("Google font links appended.");
 }
 
 // Return if page's title, meta description or meta keywords contains a filtered keyword
 async function isPageSensitive() {
+  console.log("Running page sensitivity check...");
   let keywordsFound = [];
 
   const elementsToCheck = [
@@ -83,56 +102,109 @@ async function isPageSensitive() {
     document.querySelector('meta[name="description"]'),
   ];
 
-  // Retrieve all the triggering keywords in each element.
   elementsToCheck.forEach((el) => {
-    if (!el) return; // If no element is found in the page, skip forEach iteration
+    if (!el) {
+      console.log("Element to check not found:", el);
+      return; // skip if not found
+    }
     let text = el.getAttribute("content") || el.textContent;
-    if (!text) return; // If element has no content attribute, skip forEach iteration
+    if (!text) {
+      console.log("No text content found in element:", el);
+      return;
+    }
     text = processText(text);
     const keywords = hasBlockedKeyword(text);
-    if (keywords) keywordsFound.push(...keywords);
+    if (keywords) {
+      console.log("Blocked keywords found in element:", keywords);
+      keywordsFound.push(...keywords);
+    }
   });
 
   if (keywordsFound.length > 0) {
-    return { sensitive: true, words: removeDuplicates(keywordsFound) };
+    const uniqueKeywords = removeDuplicates(keywordsFound);
+    console.log("Page contains sensitive keywords:", uniqueKeywords);
+    return { sensitive: true, words: uniqueKeywords };
   }
 
+  console.log("No sensitive keywords found on page.");
   return { sensitive: false };
+}
+
+function getSearchResults() {
+  const h3Elements = document.querySelectorAll('#rso a > h3');
+  const resultElements = new Set();
+
+  h3Elements.forEach((h3) => {
+    let container = h3.closest('div');
+    while (container && container !== document.body) {
+      const hasH3 = container.querySelector('h3');
+      const hasA = container.querySelector('a');
+      const textLength = hasH3?.textContent?.trim().length || 0 + hasA?.textContent?.trim().length || 0;
+      const minSnippetLength = 20 + textLength;
+
+      if (container.classList.contains("safe-el") || container.classList.contains("blocked-result")) break;
+
+      const hasTextOutsideH3 = Array.from(container.querySelectorAll('div, span')).some((el) => {
+        const text = el.textContent?.trim();
+        return (
+          text &&
+          text.length > minSnippetLength &&       // Heuristic: real snippet, not noise
+          !el.contains(h3) &&       // Skip containers *around* h3
+          el !== h3                 // Not the h3 itself
+        );
+      });
+
+      if (hasH3 && hasTextOutsideH3) {
+        console.log("Found result element:", container, " with text:", container.textContent);
+        resultElements.add(container);
+        break;
+      }
+
+      container = container.parentElement;
+    }
+  });
+
+  return Array.from(resultElements);
+}
+
+function extractTextNodes(result) {
+  const texts = [];
+
+  // Get all elements with visible text (skip script, style, etc.)
+  result.querySelectorAll("h3, span, div").forEach((el) => {
+    if (!el.closest("script, style, head") && el.textContent.trim().length > 0) {
+      texts.push(el.textContent.trim());
+    }
+  });
+
+  return texts;
 }
 
 // Filter search results with unwanted keywords.
 async function filterPages() {
-  // Select and remove search results with unwanted keywords
-  const searchResults = document.querySelectorAll('[class^="g"]');
+  const results = getSearchResults();
+  console.log(`Found ${results.length} results.`);
 
-  searchResults.forEach((result) => {
-    // No need to analyse the result if it has the "safe-el" class
+  results.forEach((result, index) => {
     if (result.classList.contains("safe-el")) return;
 
-    let keywordsFound = [];
-    const elementsToCheck = [
-      result.querySelector("h3"),
-      result.querySelector('[class^="VwiC3b"]'),
-      result.querySelector('[class^="hgKElc"]'),
-    ];
+    const textBlocks = extractTextNodes(result);
+    const keywordsFound = [];
 
-    elementsToCheck.forEach((el) => {
-      if (!el) return; // If no element is found in the result, skip forEach iteration
-      if (!el.textContent) return; // If element has no text content, skip forEach iteration
-      const text = processText(el.textContent);
-      const keywords = hasBlockedKeyword(text);
-      if (keywords) keywordsFound.push(...keywords);
+    textBlocks.forEach((text) => {
+      const processed = processText(text);
+      const found = hasBlockedKeyword(processed);
+      if (found) keywordsFound.push(...found);
     });
 
     if (keywordsFound.length > 0) {
-      keywordsFound = removeDuplicates(keywordsFound);
-      filterResult(result, keywordsFound);
-      return;
+      filterResult(result, removeDuplicates(keywordsFound));
+    } else {
+      result.classList.add("safe-el");
     }
-
-    result.classList.add("safe-el");
   });
 }
+
 
 function processText(el) {
   return " " + el.toLowerCase().replace(/[.,:;()"*?!/]/g, "") + " ";
@@ -158,17 +230,19 @@ function removeDuplicates(arr) {
 // Block the search result
 let resultNum = 0;
 function filterResult(result, keywordsFound) {
-  result.innerHTML = `
-  <h1>This result may be triggering</h1>
-  <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
-  <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
-  result.classList.add("blocked-result");
+  console.log(`Blocking a search result for keywords: ${keywordsFound.join(", ")}`);
+  // result.innerHTML = `
+  // <h1>This result may be triggering</h1>
+  // <button id="view-keywords-btn-${resultNum}">View triggering word(s)</button>
+  // <p id="${resultNum}-result">${keywordsFound.join(", ")}</p>`;
+  // result.classList.add("blocked-result");
   resultNum++;
 }
 
 document.addEventListener("click", (e) => {
   // View / hide the triggering keywords of a triggering result or webpage
   if (e.target.id.includes("view-keywords-btn")) {
+    console.log("View keywords button clicked:", e.target.id);
     const pEl = e.target.nextElementSibling;
     toggleKeywordVisibility(pEl, e.target);
   }
@@ -180,10 +254,14 @@ function toggleKeywordVisibility(pEl, btn) {
   btn.textContent = isHidden
     ? "Hide triggering word(s)"
     : "View triggering word(s)";
+  console.log(
+    `Toggled keyword visibility to ${isHidden ? "shown" : "hidden"} for button ${btn.id}`
+  );
 }
 
-// Append a pop-up to a wepbage containing triggering keyword(s)
+// Append a pop-up to a webpage containing triggering keyword(s)
 function appendDOMElements(words) {
+  console.log("Appending popup DOM elements with keywords:", words);
   const links = [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
     { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
@@ -203,4 +281,5 @@ function appendDOMElements(words) {
     <p id="keywords-p">${words.join(", ")}</p>`;
 
   document.body.appendChild(msgContainer);
+  console.log("Popup appended to the DOM.");
 }
