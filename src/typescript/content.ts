@@ -1,14 +1,14 @@
 console.log("Extension script loaded.");
 
-let blockedKeywords = [];
-let blockedRegexes = [];
+let blockedKeywords: string[] = [];
+let blockedRegexes: RegExp[] = [];
 let isBlocked = false;
 
 // Retrieves the blocked keywords from chrome.storage.local
-async function fetchBlockedKeywords() {
+async function fetchBlockedKeywords(): Promise<void> {
   try {
     console.log("Fetching blocked keywords from storage...");
-    const result = await new Promise((resolve, reject) => {
+    const result = await new Promise<string[] | undefined>((resolve, reject) => {
       chrome.storage.local.get("keywords", function (result) {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
@@ -28,8 +28,10 @@ async function fetchBlockedKeywords() {
 // Initialize the extension
 (async () => {
   console.log("Initializing extension...");
-  const data = await new Promise((resolve) => {
-    chrome.storage.sync.get("isBlockerPaused", resolve);
+  const data = await new Promise<{ isBlockerPaused?: boolean }>((resolve) => {
+    chrome.storage.sync.get(["isBlockerPaused"], (items) => {
+      resolve(items);
+    });
   });
   console.log("Blocker paused status:", data.isBlockerPaused);
   if (data.isBlockerPaused) {
@@ -40,11 +42,11 @@ async function fetchBlockedKeywords() {
   await fetchBlockedKeywords();
 
   if (
-    window.location.hostname == "www.google.com" &&
-    window.location.pathname == "/search"
+    window.location.hostname === "www.google.com" &&
+    window.location.pathname === "/search"
   ) {
     console.log("On Google Search results page.");
-    const links = [
+    const links: { rel: string; href: string; crossorigin?: string }[] = [
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400&display=swap",
@@ -58,7 +60,7 @@ async function fetchBlockedKeywords() {
     filterPages();
 
     const observer = new MutationObserver(filterPages);
-    const targetNode = document.body.getElementsByClassName("GyAeWb")[0]; // CHANGE THIS TO USE MORE RELIABLE SELECTOR
+    const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
     if (targetNode) {
       console.log("Setting up MutationObserver on search results container.");
       observer.observe(targetNode, { childList: true, subtree: true });
@@ -81,8 +83,7 @@ async function fetchBlockedKeywords() {
   }
 })();
 
-// Append Google links
-function appendGoogleLinks(links) {
+function appendGoogleLinks(links: { rel: string; href: string; crossorigin?: string }[]): void {
   console.log("Appending Google font links...");
   links.forEach(({ rel, href, crossorigin }) => {
     const link = document.createElement("link");
@@ -94,10 +95,9 @@ function appendGoogleLinks(links) {
   console.log("Google font links appended.");
 }
 
-// Return if page's title, meta description or meta keywords contains a filtered keyword
-async function isPageSensitive() {
+async function isPageSensitive(): Promise<{ sensitive: boolean; words: string[] }> {
   console.log("Running page sensitivity check...");
-  let keywordsFound = new Set();
+  const keywordsFound = new Set<string>();
 
   const elementsToCheck = [
     document.querySelector("title"),
@@ -106,20 +106,14 @@ async function isPageSensitive() {
   ];
 
   elementsToCheck.forEach((el) => {
-    if (!el) {
-      console.log("Element to check not found:", el);
-      return; // skip if not found
-    }
-    let text = el.getAttribute("content") || el.textContent;
-    if (!text) {
-      console.log("No text content found in element:", el);
-      return;
-    }
-    text = processText(text);
-    const keywords = hasBlockedKeyword(text);
-    if (keywords) {
-      keywordsFound.add(keywords);
-    }
+    if (!el) return;
+
+    const text = (el.getAttribute("content") || el.textContent || "").trim();
+    if (!text) return;
+
+    const processed = processText(text);
+    const keyword = hasBlockedKeyword(processed);
+    if (keyword) keywordsFound.add(keyword);
   });
 
   if (keywordsFound.size > 0) {
@@ -128,41 +122,45 @@ async function isPageSensitive() {
   }
 
   console.log("No sensitive keywords found on page.");
-  return { sensitive: false };
+  return { sensitive: false, words: [] };
 }
 
-function compileBlockedRegexes() {
+function compileBlockedRegexes(): void {
   blockedRegexes = blockedKeywords.map(
-    (word) => new RegExp(`\\b${escapeRegex(word)}\\b`, 'i')
+    (word) => new RegExp(`\\b${escapeRegex(word)}\\b`, "i")
   );
 }
 
-function getSearchResults() {
-  const h3Elements = document.querySelectorAll(
+function getSearchResults(): HTMLElement[] {
+  const h3Elements = document.querySelectorAll<HTMLElement>(
     '#rso a > h3:not([data-processed]), #rso a [aria-level="3"][role="heading"]:not([data-processed])'
   );
-  const resultElements = new Set();
-  
-  h3Elements.forEach((h3) => {
-    let container = h3.closest('div');
-    const anchorText = container.querySelector('a')?.textContent || "";
-    while (container && container !== document.body) {
-      if (container.classList.contains("safe-el") || container.classList.contains("blocked-result")) break;
-      const containerChildren = container.querySelectorAll('div, span');
+  const resultElements = new Set<HTMLElement>();
+  console.log("Found h3 elements:", h3Elements);
 
-      // Loop through each element in container and check if it contains text
+  h3Elements.forEach((h3) => {
+    let container: HTMLElement | null = h3.closest("div");
+    const anchorText = container?.querySelector("a")?.textContent || "";
+    while (container && container !== document.body) {
+      if (
+        container.classList.contains("safe-el") ||
+        container.classList.contains("blocked-result")
+      )
+        break;
+
+      const containerChildren = container.querySelectorAll("div, span");
+
       const hasTextOutsideH3 = Array.from(containerChildren).some((el) => {
-        const text = el.textContent?.trim();
+        const text = el.textContent?.trim() || "";
         return (
-          text &&
-          text.length > 30 && // Heuristics: is snippet text, not noise
-          !anchorText.includes(text) && // Heuristics: does not contain anchor text
+          text.length > 30 &&
+          !anchorText.includes(text) &&
           !el.contains(h3) &&
-          el !== h3);
+          el !== h3
+        );
       });
 
       if (hasTextOutsideH3) {
-        console.log("Found result element:", container, " with text:", container.textContent);
         resultElements.add(container);
         break;
       }
@@ -170,18 +168,17 @@ function getSearchResults() {
       container = container.parentElement;
     }
 
-    h3.setAttribute("data-processed", true);
+    h3.setAttribute("data-processed", "true");
   });
-  
+
   return Array.from(resultElements);
 }
 
-function extractTextNodes(result) {
-  const texts = [];
+function extractTextNodes(result: HTMLElement): string[] {
+  const texts: string[] = [];
 
-  // Get all elements with visible text (skip script, style, etc.)
   result.querySelectorAll("h3, span, div").forEach((el) => {
-    if (!el.closest("script, style, head") && el.textContent.trim().length > 0) {
+    if (!el.closest("script, style, head") && el.textContent?.trim()) {
       texts.push(el.textContent.trim());
     }
   });
@@ -189,15 +186,14 @@ function extractTextNodes(result) {
   return texts;
 }
 
-// Filter search results with unwanted keywords.
-async function filterPages() {
+async function filterPages(): Promise<void> {
   console.time("filterPages");
   const results = getSearchResults();
   console.log(`Found ${results.length} new results.`);
 
   results.forEach((result) => {
     const textBlocks = extractTextNodes(result);
-    const keywordsFound = new Set();
+    const keywordsFound = new Set<string>();
 
     textBlocks.forEach((text) => {
       const processed = processText(text);
@@ -216,12 +212,11 @@ async function filterPages() {
   console.log("Finished filtering search results.");
 }
 
-
-function processText(el) {
-  return el.toLowerCase().replace(/[.,:;()"*?!/]/g, "");
+function processText(text: string): string {
+  return text.toLowerCase().replace(/[.,:;()"*?!/]/g, "");
 }
 
-function hasBlockedKeyword(str) {
+function hasBlockedKeyword(str: string): string | undefined {
   for (let i = 0; i < blockedRegexes.length; i++) {
     if (blockedRegexes[i].test(str)) {
       return blockedKeywords[i];
@@ -230,28 +225,24 @@ function hasBlockedKeyword(str) {
   return undefined;
 }
 
-function escapeRegex(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape special regex characters
+function escapeRegex(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// Block the search result
 let resultNum = 0;
-function filterResult(result, keywordsFound) {
-  result.textContent = '';
+function filterResult(result: HTMLElement, keywordsFound: string[]): void {
+  result.textContent = "";
 
-  // Create h3
-  const heading = document.createElement('h3');
-  heading.textContent = 'This result may be triggering';
+  const heading = document.createElement("h3");
+  heading.textContent = "This result may be triggering";
   result.appendChild(heading);
 
-  // Create button
-  const button = document.createElement('button');
+  const button = document.createElement("button");
   button.id = `view-keywords-btn-${resultNum}`;
-  button.textContent = 'View triggering word(s)';
+  button.textContent = "View triggering word(s)";
   result.appendChild(button);
 
-  // Create paragraph
-  const paragraph = document.createElement('p');
+  const paragraph = document.createElement("p");
   paragraph.id = `${resultNum}-result`;
   paragraph.textContent = keywordsFound.join(", ");
   result.appendChild(paragraph);
@@ -260,16 +251,15 @@ function filterResult(result, keywordsFound) {
   resultNum++;
 }
 
-document.addEventListener("click", (e) => {
-  // View / hide the triggering keywords of a triggering result or webpage
-  if (e.target.id.includes("view-keywords-btn")) {
-    console.log("View keywords button clicked:", e.target.id);
-    const pEl = e.target.nextElementSibling;
-    toggleKeywordVisibility(pEl, e.target);
+document.addEventListener("click", (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  if (target?.id.includes("view-keywords-btn")) {
+    const pEl = target.nextElementSibling as HTMLElement;
+    toggleKeywordVisibility(pEl, target);
   }
 });
 
-function toggleKeywordVisibility(pEl, btn) {
+function toggleKeywordVisibility(pEl: HTMLElement, btn: HTMLElement): void {
   const isHidden = pEl.style.display === "none" || pEl.style.display === "";
   pEl.style.setProperty("display", isHidden ? "block" : "none", "important");
   btn.textContent = isHidden
@@ -277,10 +267,8 @@ function toggleKeywordVisibility(pEl, btn) {
     : "View triggering word(s)";
 }
 
-// Append a pop-up to a webpage containing triggering keyword(s)
-function appendDOMElements(words) {
-  // Append the Google font links
-  const links = [
+function appendDOMElements(words: string[]): void {
+  const links: { rel: string; href: string; crossorigin?: string }[] = [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
     { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
     {
@@ -293,18 +281,15 @@ function appendDOMElements(words) {
   const msgContainer = document.createElement("div");
   msgContainer.className = "health_anxiety_msg";
 
-  // Create h1
   const heading = document.createElement("h1");
   heading.textContent = "This webpage may contain triggering content";
   msgContainer.appendChild(heading);
 
-  // Create button
   const button = document.createElement("button");
   button.id = "view-keywords-btn";
   button.textContent = "View triggering word(s)";
   msgContainer.appendChild(button);
 
-  // Create paragraph
   const paragraph = document.createElement("p");
   paragraph.id = "keywords-p";
   paragraph.textContent = words.join(", ");

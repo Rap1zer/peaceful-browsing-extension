@@ -12,19 +12,19 @@
   "permissions": ["storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_popup": "main.html"
+    "default_popup": "./src/main.html"
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["javascript/content.js"]
+      "js": ["./dist/javascript/content.js"]
     },
     {
       "matches": ["*://www.google.com/search*"],
-      "css": ["styling/blocked-results.css"]
+      "css": ["./src/styling/blocked-results.css"]
     }
   ],
   "background": {
-    "service_worker": "javascript/background.js"
+    "service_worker": "./src/typescript/background.js"
   }
 }
