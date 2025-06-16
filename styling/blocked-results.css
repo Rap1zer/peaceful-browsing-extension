@@ -4,8 +4,9 @@
   flex-direction: column;
 }
 
-.blocked-result h1 {
+.blocked-result h3 {
   all: unset;
+  color: initial;
   font-family: "Inria Serif", sans-serif;
   font-size: 1rem;
 }

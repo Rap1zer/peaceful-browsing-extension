@@ -138,9 +138,11 @@ function compileBlockedRegexes() {
 }
 
 function getSearchResults() {
-  const h3Elements = document.querySelectorAll('#rso a > h3:not([data-processed])');
+  const h3Elements = document.querySelectorAll(
+    '#rso a > h3:not([data-processed]), #rso a [aria-level="3"][role="heading"]:not([data-processed])'
+  );
   const resultElements = new Set();
-
+  
   h3Elements.forEach((h3) => {
     let container = h3.closest('div');
     const anchorText = container.querySelector('a')?.textContent || "";
@@ -160,7 +162,7 @@ function getSearchResults() {
       });
 
       if (hasTextOutsideH3) {
-        //console.log("Found result element:", container, " with text:", container.textContent);
+        console.log("Found result element:", container, " with text:", container.textContent);
         resultElements.add(container);
         break;
       }
@@ -237,8 +239,8 @@ let resultNum = 0;
 function filterResult(result, keywordsFound) {
   result.textContent = '';
 
-  // Create h1
-  const heading = document.createElement('h1');
+  // Create h3
+  const heading = document.createElement('h3');
   heading.textContent = 'This result may be triggering';
   result.appendChild(heading);
 
