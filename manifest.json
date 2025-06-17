@@ -25,6 +25,6 @@
     }
   ],
   "background": {
-    "service_worker": "/src/typescript/background.js"
+    "service_worker": "/dist/javascript/background.js"
   }
 }
