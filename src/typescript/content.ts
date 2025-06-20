@@ -131,47 +131,17 @@ function compileBlockedRegexes(): void {
   );
 }
 
+const searchResultsDiv = document.getElementById("search") as HTMLElement;
+//Returns a list of search result elements with H3, anchor text, and text nodes
 function getSearchResults(): HTMLElement[] {
-  const h3Elements = document.querySelectorAll<HTMLElement>(
-    '#rso a > h3:not([data-processed]), #rso a [aria-level="3"][role="heading"]:not([data-processed])'
-  );
-  const resultElements = new Set<HTMLElement>();
-  console.log("Found h3 elements:", h3Elements);
+  // Get top-level search results
+  const resultsEls = Array.from(searchResultsDiv.querySelectorAll<HTMLElement>("div#rso div[data-hveid][lang]:not([data-processed]"));
 
-  h3Elements.forEach((h3) => {
-    let container: HTMLElement | null = h3.closest("div");
-    const anchorText = container?.querySelector("a")?.textContent || "";
-    while (container && container !== document.body) {
-      if (
-        container.classList.contains("safe-el") ||
-        container.classList.contains("blocked-result")
-      )
-        break;
+  // Get search results from "People also ask"
+  const dataQDivs = searchResultsDiv.querySelectorAll<HTMLElement>("div#rso div[data-q] div[data-ved][data-hveid][class]:not([data-processed]");
+  const pplAlsoAskEls = Array.from(dataQDivs).filter(el => el.querySelectorAll("a h3").length > 0);
 
-      const containerChildren = container.querySelectorAll("div, span");
-
-      const hasTextOutsideH3 = Array.from(containerChildren).some((el) => {
-        const text = el.textContent?.trim() || "";
-        return (
-          text.length > 30 &&
-          !anchorText.includes(text) &&
-          !el.contains(h3) &&
-          el !== h3
-        );
-      });
-
-      if (hasTextOutsideH3) {
-        resultElements.add(container);
-        break;
-      }
-
-      container = container.parentElement;
-    }
-
-    h3.setAttribute("data-processed", "true");
-  });
-
-  return Array.from(resultElements);
+  return resultsEls.concat(pplAlsoAskEls);
 }
 
 function extractTextNodes(result: HTMLElement): string[] {
@@ -206,6 +176,8 @@ async function filterPages(): Promise<void> {
     } else {
       result.classList.add("safe-el");
     }
+    
+    result.setAttribute("data-processed", "true");
   });
 
   console.timeEnd("filterPages");
