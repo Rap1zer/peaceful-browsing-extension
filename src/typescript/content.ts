@@ -171,17 +171,12 @@ async function filterPages(): Promise<void> {
       if (found) keywordsFound.add(found);
     });
 
-    if (keywordsFound.size > 0) {
-      filterResult(result, Array.from(keywordsFound));
-    } else {
-      result.classList.add("safe-el");
-    }
+    if (keywordsFound.size > 0) filterResult(result, Array.from(keywordsFound));
     
     result.setAttribute("data-processed", "true");
   });
 
   console.timeEnd("filterPages");
-  console.log("Finished filtering search results.");
 }
 
 function processText(text: string): string {
