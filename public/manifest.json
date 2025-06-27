@@ -4,27 +4,33 @@
   "version": "1.0",
   "description": "Filters sensitive webpages and search results for people with health anxiety",
   "icons": {
-    "16": "public/images/icon16.png",
-    "32": "public/images/icon32.png",
-    "48": "public/images/icon48.png",
-    "128": "public/images/icon128.png"
+    "16": "/images/icon16.png",
+    "32": "/images/icon32.png",
+    "48": "/images/icon48.png",
+    "128": "/images/icon128.png"
   },
   "permissions": ["storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "/src/main.html"
   },
+  "web_accessible_resources": [
+  {
+    "resources": ["main.html"],
+    "matches": ["<all_urls>"]
+  }
+],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["/dist/javascript/content.js"]
+      "js": ["/content.js"]
     },
     {
       "matches": ["*://www.google.com/search*"],
-      "css": ["/src/styling/blocked-results.css"]
+      "css": ["/blocked-results.css"]
     }
   ],
   "background": {
-    "service_worker": "/dist/javascript/background.js"
+    "service_worker": "/background.js"
   }
 }

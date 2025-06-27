@@ -3,7 +3,7 @@ body {
   display: flex;
   margin-top: 8px;
   flex-direction: column;
-  background-image: url("../../public/images/floral.png");
+  background-image: url("../../images/floral.png");
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: 140px;

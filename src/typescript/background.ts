@@ -1,4 +1,4 @@
-let stylingForBlockedSites: string = "/src/styling/blocked-webpage.css";
+let stylingForBlockedSites: string = "/blocked-webpage.css";
 let isBlockerPaused: boolean = false;
 
 interface Message {

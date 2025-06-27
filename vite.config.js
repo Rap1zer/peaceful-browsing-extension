@@ -18,7 +18,8 @@ export default defineConfig({
         blockKeywordsHtml: resolve(__dirname, 'src/block-keywords.html'),
       },
       output: {
-        entryFileNames: '[name].js', // flat JS output in dist/javascript
+        entryFileNames: '[name].js',
+        assetFileNames: '[name][extname]'
       },
     },
     minify: 'false'
