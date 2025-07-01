@@ -53,12 +53,19 @@ test('can pause and unpause', async () => {
   expect(await pauseMsg!.textContent()).toBe('Reload page to see changes');
 });
 
-// Verify clicking 'Edit triggering keywords' button takes user to block-keywords.html
-test('can navigate to block-keywords.html', async () => {
+// Verify user can navigate between the two pages using 'Edit triggering keywords' button and the back button
+test('can navigate between pages', async () => {
+  // Go to keywords page
   const keywordsBtn = await page.$('#keywords-btn');
   expect(keywordsBtn, 'Keywords button with id "keywords-btn" not found').not.toBeNull();
   await keywordsBtn!.click();
   expect(page.url()).toBe(`chrome-extension://${extensionId}/src/block-keywords.html`);
+
+  // Go back to main page
+  const goBackBtn = await page.$('.go-back-btn');
+  expect(goBackBtn, 'Go back button not found').not.toBeNull();
+  await goBackBtn!.click();
+  expect(page.url()).toBe(mainUrl);
 })
 
 async function getIsBlockerPaused(): Promise<boolean> {
