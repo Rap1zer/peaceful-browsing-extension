@@ -81,7 +81,7 @@ test('can add new keyword', async () => {
   expect(blockKeywordMsg, 'Block keyword message not found').not.toBeNull();
   expect(await blockKeywordMsg!.textContent()).toBe(`"${newKeyword}" is now blocked`);
 
-  // Verify the keyword has successfully been added to storage. CODE WORKS IF THIS PART IS DELETED
+  // Verify the keyword has successfully been added to storage
   const hasStoredKeyword = await page.evaluate((newKeyword) => {
     return new Promise<boolean>((resolve) => {
       chrome.storage.local.get("keywords", (data: { keywords?: string[] }) => {

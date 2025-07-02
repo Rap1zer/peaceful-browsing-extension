@@ -107,9 +107,7 @@ document.addEventListener("click", (e: MouseEvent) => {
       const index = keywords.indexOf(keyword);
       if (index !== -1) {
         keywords.splice(index, 1);
-        chrome.storage.local.set({ keywords }, () => {
-          console.log("Keyword removed successfully");
-        });
+        chrome.storage.local.set({ keywords });
       }
     });
 
