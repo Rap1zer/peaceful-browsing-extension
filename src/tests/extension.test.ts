@@ -55,17 +55,45 @@ test('can pause and unpause', async () => {
 
 // Verify user can navigate between the two pages using 'Edit triggering keywords' button and the back button
 test('can navigate between pages', async () => {
-  // Go to keywords page
-  const keywordsBtn = await page.$('#keywords-btn');
-  expect(keywordsBtn, 'Keywords button with id "keywords-btn" not found').not.toBeNull();
-  await keywordsBtn!.click();
-  expect(page.url()).toBe(`chrome-extension://${extensionId}/src/block-keywords.html`);
+  await gotoKeywordsPage();
 
   // Go back to main page
   const goBackBtn = await page.$('.go-back-btn');
   expect(goBackBtn, 'Go back button not found').not.toBeNull();
   await goBackBtn!.click();
   expect(page.url()).toBe(mainUrl);
+})
+
+test('can add new keyword', async () => {
+  const newKeyword: string = 'foobar';
+
+  await gotoKeywordsPage();
+
+  await page.fill('#new-keyword-input', newKeyword); // Enter new keyword to input field
+
+  // Click the block keyword button
+  const blockKeywordBtn = await page.$('#block-new-keyword-btn');
+  expect(blockKeywordBtn, 'Block keyword button not found').not.toBeNull();
+  await blockKeywordBtn!.click();
+
+  // Verify the success message appears and is correct
+  const blockKeywordMsg = await page.$('#block-new-keyword-msg');
+  expect(blockKeywordMsg, 'Block keyword message not found').not.toBeNull();
+  expect(await blockKeywordMsg!.textContent()).toBe(`"${newKeyword}" is now blocked`);
+
+  // Verify the keyword has successfully been added to storage. CODE WORKS IF THIS PART IS DELETED
+  const hasStoredKeyword = await page.evaluate((newKeyword) => {
+    return new Promise<boolean>((resolve) => {
+      chrome.storage.local.get("keywords", (data: { keywords?: string[] }) => {
+        const keywords: string[] = data.keywords || [];
+        resolve(keywords.includes(newKeyword));
+      })
+    })
+  }, newKeyword)
+  expect(hasStoredKeyword, 'New keyword not found in local storage').toBe(true);
+
+  await page.waitForLoadState('load');
+  await clearAddedKeywords([newKeyword]);
 })
 
 async function getIsBlockerPaused(): Promise<boolean> {
@@ -76,4 +104,26 @@ async function getIsBlockerPaused(): Promise<boolean> {
       });
     });
   });
+}
+
+async function gotoKeywordsPage(): Promise<void> {
+  const keywordsBtn = await page.$('#keywords-btn');
+  expect(keywordsBtn, 'Keywords button with id "keywords-btn" not found').not.toBeNull();
+  await keywordsBtn!.click();
+  expect(page.url()).toBe(`chrome-extension://${extensionId}/src/block-keywords.html`);
+}
+
+async function clearAddedKeywords(keywordsToRemove: string[]): Promise<void> {
+  await page.evaluate((keywordsToRemove) => {
+    return new Promise<void>((resolve) => {
+      chrome.storage.local.get('keywords', (data) => {
+        const keywords: string[] = data.keywords || [];
+        // Filter out keywordsToRemove
+        const filteredKeywords = keywords.filter(k => !keywordsToRemove.includes(k));
+        chrome.storage.local.set({ keywords: filteredKeywords }, () => {
+          resolve();
+        });
+      });
+    });
+  }, keywordsToRemove);
 }
