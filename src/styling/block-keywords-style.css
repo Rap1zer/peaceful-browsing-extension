@@ -11,12 +11,14 @@ p {
   display: flex;
 }
 
-.input-text {
+.input-keyword {
+  font-size: 1.2em;
+  height: 32px;
+  width: 100%;
+  padding: 10px 10px 10px 0.6rem;
   border-radius: 4px 0 0 4px;
   border: 1px solid black;
-  width: 100%;
   border-right: none;
-  padding-left: 0.6rem;
 }
 
 .description {
