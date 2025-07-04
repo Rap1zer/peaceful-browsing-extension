@@ -1,5 +1,3 @@
-console.log("Extension script loaded.");
-
 let blockedKeywords: string[] = [];
 let blockedRegexes: RegExp[] = [];
 let isBlocked = false;
@@ -7,7 +5,6 @@ let isBlocked = false;
 // Retrieves the blocked keywords from chrome.storage.local
 async function fetchBlockedKeywords(): Promise<void> {
   try {
-    console.log("Fetching blocked keywords from storage...");
     const result = await new Promise<string[] | undefined>((resolve, reject) => {
       chrome.storage.local.get("keywords", function (result) {
         if (chrome.runtime.lastError) {
@@ -19,33 +16,33 @@ async function fetchBlockedKeywords(): Promise<void> {
     });
     blockedKeywords = result || [];
     compileBlockedRegexes();
-    console.log("Blocked keywords fetched:", blockedKeywords);
   } catch (error) {
     console.error("Error fetching blocked keywords:", error);
   }
 }
 
-// Initialize the extension
+/**
+ * Main initialization function that checks blocker state,
+ * detects page type, and either filters results or applies a warning overlay.
+ */
 (async () => {
-  console.log("Initializing extension...");
+  // Check if extension is currently paused
   const data = await new Promise<{ isBlockerPaused?: boolean }>((resolve) => {
     chrome.storage.sync.get(["isBlockerPaused"], (items) => {
       resolve(items);
     });
   });
-  console.log("Blocker paused status:", data.isBlockerPaused);
   if (data.isBlockerPaused) {
-    console.log("Blocker is paused. Exiting initialization.");
     return;
   }
 
   await fetchBlockedKeywords();
 
+  // Handle Google search results page
   if (
     window.location.hostname === "www.google.com" &&
     window.location.pathname === "/search"
   ) {
-    console.log("On Google Search results page.");
     const links: { rel: string; href: string; crossorigin?: string }[] = [
       {
         rel: "stylesheet",
@@ -59,32 +56,28 @@ async function fetchBlockedKeywords(): Promise<void> {
     appendGoogleLinks(links);
     filterPages();
 
+    // Observe for dynamic content (new search results)
     const observer = new MutationObserver(filterPages);
     const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
     if (targetNode) {
-      console.log("Setting up MutationObserver on search results container.");
       observer.observe(targetNode, { childList: true, subtree: true });
     } else {
       console.warn("Search results container not found.");
     }
   } else {
-    console.log("Checking if current page is sensitive.");
+    // Not a Google search page: check for sensitive content in meta/title
     const pageSensitivity = await isPageSensitive();
-    console.log("Page sensitivity check result:", pageSensitivity);
     if (pageSensitivity.sensitive) {
-      console.log("Page is sensitive. Applying blur and popup.");
-      console.log(pageSensitivity.words);
       appendDOMElements(pageSensitivity.words);
       chrome.runtime.sendMessage({ type: "insertCSS" });
       isBlocked = true;
     } else {
-      console.log("Page is not sensitive.");
     }
   }
 })();
 
+// Adds custom fonts to the page head
 function appendGoogleLinks(links: { rel: string; href: string; crossorigin?: string }[]): void {
-  console.log("Appending Google font links...");
   links.forEach(({ rel, href, crossorigin }) => {
     const link = document.createElement("link");
     link.rel = rel;
@@ -92,11 +85,10 @@ function appendGoogleLinks(links: { rel: string; href: string; crossorigin?: str
     if (crossorigin) link.setAttribute("crossorigin", crossorigin);
     document.head.appendChild(link);
   });
-  console.log("Google font links appended.");
 }
 
+// Checks page title and meta tags for blocked keywords.
 async function isPageSensitive(): Promise<{ sensitive: boolean; words: string[] }> {
-  console.log("Running page sensitivity check...");
   const keywordsFound = new Set<string>();
 
   const elementsToCheck = [
@@ -117,22 +109,23 @@ async function isPageSensitive(): Promise<{ sensitive: boolean; words: string[] 
   });
 
   if (keywordsFound.size > 0) {
-    console.log("Page contains sensitive keywords:", keywordsFound);
     return { sensitive: true, words: Array.from(keywordsFound) };
   }
 
-  console.log("No sensitive keywords found on page.");
   return { sensitive: false, words: [] };
 }
 
+// Converts blocked keywords into compiled regex patterns.
 function compileBlockedRegexes(): void {
   blockedRegexes = blockedKeywords.map(
     (word) => new RegExp(`\\b${escapeRegex(word)}\\b`, "i")
   );
 }
 
+// Google Search results container
 const searchResultsDiv = document.getElementById("search") as HTMLElement;
-//Returns a list of search result elements with H3, anchor text, and text nodes
+
+// Gathers visible search result elements on the page
 function getSearchResults(): HTMLElement[] {
   // Get top-level search results
   const resultsEls = Array.from(searchResultsDiv.querySelectorAll<HTMLElement>("div#rso div[data-hveid][lang]:not([data-processed]"));
@@ -144,6 +137,7 @@ function getSearchResults(): HTMLElement[] {
   return resultsEls.concat(pplAlsoAskEls);
 }
 
+// Extracts visible text content from result elements
 function extractTextNodes(result: HTMLElement): string[] {
   const texts: string[] = [];
 
@@ -156,10 +150,10 @@ function extractTextNodes(result: HTMLElement): string[] {
   return texts;
 }
 
+// Scans search results and hides those containing blocked keywords.
 async function filterPages(): Promise<void> {
   console.time("filterPages");
   const results = getSearchResults();
-  console.log(`Found ${results.length} new results.`);
 
   results.forEach((result) => {
     const textBlocks = extractTextNodes(result);
@@ -179,10 +173,12 @@ async function filterPages(): Promise<void> {
   console.timeEnd("filterPages");
 }
 
+// Normalizes and sanitizes text for keyword matching
 function processText(text: string): string {
   return text.toLowerCase().replace(/[.,:;()"*?!/]/g, "");
 }
 
+// Checks if a string contains any blocked keyword using regexes.
 function hasBlockedKeyword(str: string): string | undefined {
   for (let i = 0; i < blockedRegexes.length; i++) {
     if (blockedRegexes[i].test(str)) {
@@ -192,11 +188,13 @@ function hasBlockedKeyword(str: string): string | undefined {
   return undefined;
 }
 
+// Escapes special regex characters in a string
 function escapeRegex(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 let resultNum = 0;
+// Hides and replaces a sensitive search result with a warning and a reveal button
 function filterResult(result: HTMLElement, keywordsFound: string[]): void {
   result.textContent = "";
 
@@ -218,14 +216,16 @@ function filterResult(result: HTMLElement, keywordsFound: string[]): void {
   resultNum++;
 }
 
+// Toggle keyword visibility on user click
 document.addEventListener("click", (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  if (target?.id.includes("view-keywords-btn")) {
+  if (target?.id?.includes("view-keywords-btn")) {
     const pEl = target.nextElementSibling as HTMLElement;
     toggleKeywordVisibility(pEl, target);
   }
 });
 
+// Shows or hides the blocked keywords when user clicks the button
 function toggleKeywordVisibility(pEl: HTMLElement, btn: HTMLElement): void {
   const isHidden = pEl.style.display === "none" || pEl.style.display === "";
   pEl.style.setProperty("display", isHidden ? "block" : "none", "important");
@@ -234,6 +234,7 @@ function toggleKeywordVisibility(pEl: HTMLElement, btn: HTMLElement): void {
     : "View triggering word(s)";
 }
 
+// Appends the popup warning for sensitive non-Google pages
 function appendDOMElements(words: string[]): void {
   const links: { rel: string; href: string; crossorigin?: string }[] = [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -263,5 +264,4 @@ function appendDOMElements(words: string[]): void {
   msgContainer.appendChild(paragraph);
 
   document.body.appendChild(msgContainer);
-  console.log("Popup appended to the DOM.");
 }
