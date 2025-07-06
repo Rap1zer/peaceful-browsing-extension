@@ -1,6 +1,6 @@
 let blockedKeywords: string[] = [];
 let blockedRegexes: RegExp[] = [];
-let isBlocked = false;
+
 // Google Search results container
 const searchResultsDiv = document.getElementById("search") as HTMLElement;
 
@@ -72,7 +72,6 @@ async function fetchBlockedKeywords(): Promise<void> {
     if (pageSensitivity.sensitive) {
       appendDOMElements(pageSensitivity.words);
       chrome.runtime.sendMessage({ type: "insertCSS" });
-      isBlocked = true;
     } else {
     }
   }
