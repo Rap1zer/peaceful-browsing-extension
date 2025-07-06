@@ -138,6 +138,7 @@ function getSearchResults(): HTMLElement[] {
 
 // Extracts visible text content from result elements
 function extractTextContent(result: HTMLElement): string {
+  if (!result) return "";
   const clone = result.cloneNode(true) as HTMLElement;
 
   // Remove unwanted elements
@@ -157,6 +158,7 @@ async function filterSearchResults(): Promise<void> {
     const text = extractTextContent(result);
     const processedText = processText(text);
     const keywordsFound = getBlockedKeywords(processedText);
+    console.log(keywordsFound);
 
     if (keywordsFound.length > 0) filterResult(result, keywordsFound);
     
@@ -168,15 +170,14 @@ async function filterSearchResults(): Promise<void> {
 
 // Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
 function getAIResults(): HTMLElement[] {
-  const AIheaders = Array.from(searchResultsDiv.querySelectorAll("div:not([data-processed])")).filter(div => (
-    div.textContent?.includes("AI Overview") && 
-    (div.textContent?.includes("An AI Overview is not available for this search") || 
-    div.textContent?.includes("Can't generate an AI overview right now. Try again later."))));
+  //const AIheaders = Array.from(searchResultsDiv.querySelectorAll('div[jsname][role="heading"] strong'));
+  const AIresults = Array.from(document.querySelectorAll('div[jsname][data-rl]:not([data-processed])')) as HTMLElement[];
     
-  AIheaders.forEach(div => div.setAttribute("data-processed", "true"));
+  AIresults.forEach(div => div.setAttribute("data-processed", "true"));
   
-  console.log(AIheaders.map(div => div.nextElementSibling as HTMLElement));
-  return AIheaders.map(div => div.nextElementSibling as HTMLElement);
+  //console.log("AI headers:", AIheaders);
+  console.log("AI results:", AIresults);
+  return AIresults;
 }
 
 // Normalizes and sanitizes text for keyword matching
