@@ -1,6 +1,8 @@
 let blockedKeywords: string[] = [];
 let blockedRegexes: RegExp[] = [];
 let isBlocked = false;
+// Google Search results container
+const searchResultsDiv = document.getElementById("search") as HTMLElement;
 
 // Retrieves the blocked keywords from chrome.storage.local
 async function fetchBlockedKeywords(): Promise<void> {
@@ -54,11 +56,11 @@ async function fetchBlockedKeywords(): Promise<void> {
       },
     ];
     appendGoogleLinks(links);
-    filterPages();
+    filterSearchResults();
 
     // Observe for dynamic content (new search results)
-    const observer = new MutationObserver(filterPages);
-    const targetNode = document.body.getElementsByClassName("GyAeWb")[0];
+    const observer = new MutationObserver(filterSearchResults);
+    const targetNode =  searchResultsDiv;
     if (targetNode) {
       observer.observe(targetNode, { childList: true, subtree: true });
     } else {
@@ -104,8 +106,8 @@ async function isPageSensitive(): Promise<{ sensitive: boolean; words: string[] 
     if (!text) return;
 
     const processed = processText(text);
-    const keyword = hasBlockedKeyword(processed);
-    if (keyword) keywordsFound.add(keyword);
+    const newKeywordsFound = getBlockedKeywords(processed);
+    newKeywordsFound.forEach((keyword) => keywordsFound.add(keyword));
   });
 
   if (keywordsFound.size > 0) {
@@ -122,9 +124,6 @@ function compileBlockedRegexes(): void {
   );
 }
 
-// Google Search results container
-const searchResultsDiv = document.getElementById("search") as HTMLElement;
-
 // Gathers visible search result elements on the page
 function getSearchResults(): HTMLElement[] {
   // Get top-level search results
@@ -138,39 +137,46 @@ function getSearchResults(): HTMLElement[] {
 }
 
 // Extracts visible text content from result elements
-function extractTextNodes(result: HTMLElement): string[] {
-  const texts: string[] = [];
+function extractTextContent(result: HTMLElement): string {
+  const clone = result.cloneNode(true) as HTMLElement;
 
-  result.querySelectorAll("h3, span, div").forEach((el) => {
-    if (!el.closest("script, style, head") && el.textContent?.trim()) {
-      texts.push(el.textContent.trim());
-    }
-  });
+  // Remove unwanted elements
+  clone.querySelectorAll("script, style, head").forEach(el => el.remove());
 
-  return texts;
+  return clone.textContent?.trim() || "";
 }
 
+
+
 // Scans search results and hides those containing blocked keywords.
-async function filterPages(): Promise<void> {
+async function filterSearchResults(): Promise<void> {
   console.time("filterPages");
-  const results = getSearchResults();
+  const results: HTMLElement[] = getSearchResults().concat(getAIResults());
 
   results.forEach((result) => {
-    const textBlocks = extractTextNodes(result);
-    const keywordsFound = new Set<string>();
+    const text = extractTextContent(result);
+    const processedText = processText(text);
+    const keywordsFound = getBlockedKeywords(processedText);
 
-    textBlocks.forEach((text) => {
-      const processed = processText(text);
-      const found = hasBlockedKeyword(processed);
-      if (found) keywordsFound.add(found);
-    });
-
-    if (keywordsFound.size > 0) filterResult(result, Array.from(keywordsFound));
+    if (keywordsFound.length > 0) filterResult(result, keywordsFound);
     
     result.setAttribute("data-processed", "true");
   });
 
   console.timeEnd("filterPages");
+}
+
+// Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
+function getAIResults(): HTMLElement[] {
+  const AIheaders = Array.from(searchResultsDiv.querySelectorAll("div:not([data-processed])")).filter(div => (
+    div.textContent?.includes("AI Overview") && 
+    (div.textContent?.includes("An AI Overview is not available for this search") || 
+    div.textContent?.includes("Can't generate an AI overview right now. Try again later."))));
+    
+  AIheaders.forEach(div => div.setAttribute("data-processed", "true"));
+  
+  console.log(AIheaders.map(div => div.nextElementSibling as HTMLElement));
+  return AIheaders.map(div => div.nextElementSibling as HTMLElement);
 }
 
 // Normalizes and sanitizes text for keyword matching
@@ -179,13 +185,14 @@ function processText(text: string): string {
 }
 
 // Checks if a string contains any blocked keyword using regexes.
-function hasBlockedKeyword(str: string): string | undefined {
+function getBlockedKeywords(str: string): string[] {
+  const keywordsFound = new Set<string>();
   for (let i = 0; i < blockedRegexes.length; i++) {
     if (blockedRegexes[i].test(str)) {
-      return blockedKeywords[i];
+      keywordsFound.add(blockedKeywords[i]);
     }
   }
-  return undefined;
+  return Array.from(keywordsFound);
 }
 
 // Escapes special regex characters in a string
@@ -265,3 +272,4 @@ function appendDOMElements(words: string[]): void {
 
   document.body.appendChild(msgContainer);
 }
+
