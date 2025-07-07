@@ -127,23 +127,24 @@ test('keyword length validation', async () => {
   await gotoKeywordsPage();
 
   // Search for keyword
-  await page.locator(`#keyword-search-input`).fill('This input is far far far longer than 50 characters');
+  await page.locator(`#new-keyword-input`).fill('This input is far far far longer than 50 characters');
   await page.keyboard.press('Enter');
 
   // Verify the error message appears and is correct
-  const validationMsg = await page.$('.validation-error');
-  expect(validationMsg, 'Validation error message not found').not.toBeNull();
-  expect(await validationMsg!.textContent()).toBe('Input must be 50 characters or less');
+  const blockKeywordMsg = await page.locator('#block-new-keyword-msg');
+  expect(blockKeywordMsg, 'Block keyword message not found').not.toBeNull();
+  await expect(blockKeywordMsg).toHaveText('Input must be 50 characters or less');
 });
 
-test('cannot add keyword twiice', async () => {
+// Verify user cannot add keyword twice
+test('cannot add keyword twice', async () => {
   const keyword: string = 'foobar';
   let response = await addKeyword(keyword);
   expect(response.success).toBe(true);
 
   response = await addKeyword(keyword);
   expect(response.success).toBe(false);
-  expect(response.error).toBe('foobar is already in the list of keywords');
+  expect(response.error).toBe('"foobar" is already in the list of keywords');
 
   await removeKeywords([keyword]); // Reset the local storage
 });
