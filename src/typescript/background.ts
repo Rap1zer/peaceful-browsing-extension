@@ -26,7 +26,7 @@ async function initialise(): Promise<void> {
 }
 
 chrome.runtime.onMessage.addListener(
-  (message: Message, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void): void => {
+  (message: Message, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void): void | boolean => {
     (async () => {
       // Check if the chrome extension is currently paused
       await chrome.storage.sync.get("isBlockerPaused", (data: { isBlockerPaused?: boolean }) => {
@@ -56,7 +56,9 @@ chrome.runtime.onMessage.addListener(
       chrome.storage.local.get("keywords", (result: { keywords?: string[] }) => {
         if (keyword.length >= 50) {
           sendResponse({success: false, error: "Input is too long"});
-        } else if (result.keywords?.includes(keyword)) { // Keyword already in storage
+          return;
+        } 
+        if (result.keywords?.includes(keyword)) { // Keyword already in storage
           sendResponse({success: false, error: `"${keyword}" is already in the list of keywords`});
           return;
         }
@@ -71,6 +73,8 @@ chrome.runtime.onMessage.addListener(
           }
         });
       });
+
+      return true;
     }
   }
 );
