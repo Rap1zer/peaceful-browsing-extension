@@ -11,6 +11,11 @@ const userDataDir = './src/tests/tmp-profile';
 const extensionId = 'khhfdlfbbkmlppmcalhncemigmebjjjp';
 const mainUrl = `chrome-extension://${extensionId}/src/main.html`;
 
+interface response {
+  success: boolean;
+  error?: string;
+}
+
 test.beforeAll(async () => {
   context = await chromium.launchPersistentContext(userDataDir, {
     headless: false,
@@ -82,9 +87,9 @@ test('can add new keyword', async () => {
   await blockKeywordBtn!.click();
 
   // Verify the success message appears and is correct
-  const blockKeywordMsg = await page.$('#block-new-keyword-msg');
+  const blockKeywordMsg = await page.locator('#block-new-keyword-msg');
   expect(blockKeywordMsg, 'Block keyword message not found').not.toBeNull();
-  expect(await blockKeywordMsg!.textContent()).toBe(`"${newKeyword}" is now blocked`);
+  await expect(blockKeywordMsg).toHaveText(`"${newKeyword}" is now blocked`);
 
   // Verify the keyword has successfully been added to storage
   const keywordStored = await hasStoredKeyword(newKeyword);
@@ -134,15 +139,17 @@ async function gotoKeywordsPage(): Promise<void> {
   expect(page.url()).toBe(`chrome-extension://${extensionId}/src/block-keywords.html`);
 }
 
-async function addKeyword(newKeyword: string): Promise<void> {
-  await page.evaluate((newKeyword) => {
-    return new Promise<void>((resolve) => {
-      chrome.runtime.sendMessage({ type: "blockKeyword", keyword: newKeyword }, () => {
-        resolve();
-      });
+async function addKeyword(newKeyword: string): Promise<response> {
+  return await page.evaluate((newKeyword) => {
+    return new Promise<response>((resolve) => {
+      chrome.runtime.sendMessage(
+        { type: "blockKeyword", keyword: newKeyword },
+        (response) => resolve(response)
+      );
     });
   }, newKeyword);
 }
+
 
 async function removeKeywords(keywordsToRemove: string[]): Promise<void> {
   await page.evaluate((keywordsToRemove) => {
