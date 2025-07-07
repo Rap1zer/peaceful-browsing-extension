@@ -24,7 +24,7 @@ async function initialise(): Promise<void> {
 }
 
 chrome.runtime.onMessage.addListener(
-  (message: Message, sender: chrome.runtime.MessageSender): void => {
+  (message: Message, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void): void => {
     (async () => {
       // Check if the chrome extension is currently paused
       await chrome.storage.sync.get("isBlockerPaused", (data: { isBlockerPaused?: boolean }) => {
@@ -52,9 +52,15 @@ chrome.runtime.onMessage.addListener(
     if (message.type === "blockKeyword" && message.keyword) {
       const keyword = message.keyword;
       chrome.storage.local.get("keywords", (result: { keywords?: string[] }) => {
+        if (result.keywords?.includes(keyword)) { // Keyword already in storage
+          sendResponse({success: false});
+          return;
+        }
+        
         const keywordData: string[] = result.keywords ?? [];
         keywordData.push(keyword);
         chrome.storage.local.set({ keywords: keywordData });
+        sendResponse({success: true});
       });
     }
   }

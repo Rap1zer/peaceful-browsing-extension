@@ -97,9 +97,10 @@ function loadResults(keywords: string[], length: number = 0): void {
   }
 }
 
+// Delete keyword
 document.addEventListener("click", (e: MouseEvent) => {
   const target = e.target as HTMLElement;
-  if (target.id.includes("-keyword-item")) {
+  if (target.id.includes("-keyword-item")) { // Check if the click was on the remove button
     const keyword = target.id.split("-")[0];
 
     chrome.storage.local.get("keywords", (data: { keywords: string[] }) => {
