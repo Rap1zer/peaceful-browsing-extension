@@ -55,7 +55,7 @@ chrome.runtime.onMessage.addListener(
       const keyword = message.keyword;
       chrome.storage.local.get("keywords", (result: { keywords?: string[] }) => {
         if (keyword.length >= 50) {
-          sendResponse({success: false, error: "Input is too long"});
+          sendResponse({success: false, error: "Input must be 50 characters or less"});
           return;
         } 
         if (result.keywords?.includes(keyword)) { // Keyword already in storage

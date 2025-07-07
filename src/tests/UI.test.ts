@@ -122,6 +122,32 @@ test('can remove keyword', async () => {
   await addKeyword(keywordToRemove); // Reset the local storage
 });
 
+// Verify keyword length validation
+test('keyword length validation', async () => {
+  await gotoKeywordsPage();
+
+  // Search for keyword
+  await page.locator(`#keyword-search-input`).fill('This input is far far far longer than 50 characters');
+  await page.keyboard.press('Enter');
+
+  // Verify the error message appears and is correct
+  const validationMsg = await page.$('.validation-error');
+  expect(validationMsg, 'Validation error message not found').not.toBeNull();
+  expect(await validationMsg!.textContent()).toBe('Input must be 50 characters or less');
+});
+
+test('cannot add keyword twiice', async () => {
+  const keyword: string = 'foobar';
+  let response = await addKeyword(keyword);
+  expect(response.success).toBe(true);
+
+  response = await addKeyword(keyword);
+  expect(response.success).toBe(false);
+  expect(response.error).toBe('foobar is already in the list of keywords');
+
+  await removeKeywords([keyword]); // Reset the local storage
+});
+
 async function getIsBlockerPaused(): Promise<boolean> {
   return await page.evaluate(() => {
     return new Promise<boolean>((resolve) => {

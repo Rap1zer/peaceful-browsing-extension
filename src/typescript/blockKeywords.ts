@@ -22,7 +22,7 @@ function blockKeyword(): void {
 
   if (!rawInput) return;
   if (keyword.length >= 50) {
-    blockKeywordMsg.textContent = "Input is too long";
+    blockKeywordMsg.textContent = "Input must be 50 characters or less";
     return;
   }
 
