@@ -2,7 +2,7 @@ let blockedKeywords: string[] = [];
 let blockedRegexes: RegExp[] = [];
 
 // Google Search results container
-const searchResultsDiv = document.getElementById("search") as HTMLElement;
+const resultsContainer = document.getElementById("main") as HTMLElement;
 
 // Retrieves the blocked keywords from chrome.storage.local
 async function fetchBlockedKeywords(): Promise<void> {
@@ -60,7 +60,7 @@ async function fetchBlockedKeywords(): Promise<void> {
 
     // Observe for dynamic content (new search results)
     const observer = new MutationObserver(filterSearchResults);
-    const targetNode =  searchResultsDiv;
+    const targetNode =  resultsContainer;
     if (targetNode) {
       observer.observe(targetNode, { childList: true, subtree: true });
     } else {
@@ -126,14 +126,18 @@ function compileBlockedRegexes(): void {
 // Gathers visible search result elements on the page
 function getSearchResults(): HTMLElement[] {
   // Get top-level search results
-  const resultsEls = Array.from(searchResultsDiv.querySelectorAll<HTMLElement>("div#rso div[data-hveid][lang]:not([data-processed]"));
+  const resultsEls = Array.from(resultsContainer.querySelectorAll<HTMLElement>(
+  'div[data-hveid][jscontroller]:not([data-processed]):not([data-initq]):has(a h3)'
+  )); // :not([data-initq]) excludes "People also ask"
 
   // Get search results from "People also ask"
-  const dataQDivs = searchResultsDiv.querySelectorAll<HTMLElement>("div#rso div[data-q] div[data-ved][data-hveid][class]:not([data-processed]");
-  const pplAlsoAskEls = Array.from(dataQDivs).filter(el => el.querySelectorAll("a h3").length > 0);
+  const pplAlsoAskEls = Array.from(resultsContainer.querySelectorAll<HTMLElement>(
+    "div[data-q] div[data-ved][data-hveid][class]:not([data-processed]:has(a h3)"
+  ));
 
   return resultsEls.concat(pplAlsoAskEls);
 }
+
 
 // Extracts visible text content from result elements
 function extractTextContent(result: HTMLElement): string {
@@ -157,7 +161,6 @@ async function filterSearchResults(): Promise<void> {
     const text = extractTextContent(result);
     const processedText = processText(text);
     const keywordsFound = getBlockedKeywords(processedText);
-    console.log(keywordsFound);
 
     if (keywordsFound.length > 0) filterResult(result, keywordsFound);
     
@@ -169,13 +172,10 @@ async function filterSearchResults(): Promise<void> {
 
 // Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
 function getAIResults(): HTMLElement[] {
-  //const AIheaders = Array.from(searchResultsDiv.querySelectorAll('div[jsname][role="heading"] strong'));
   const AIresults = Array.from(document.querySelectorAll('div[jsname][data-rl]:not([data-processed])')) as HTMLElement[];
     
   AIresults.forEach(div => div.setAttribute("data-processed", "true"));
   
-  //console.log("AI headers:", AIheaders);
-  console.log("AI results:", AIresults);
   return AIresults;
 }
 
@@ -272,4 +272,3 @@ function appendDOMElements(words: string[]): void {
 
   document.body.appendChild(msgContainer);
 }
-
