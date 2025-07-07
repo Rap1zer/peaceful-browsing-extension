@@ -21,22 +21,17 @@ function blockKeyword(): void {
   const keyword = rawInput.toLowerCase().replace(/[.,:;()"*?!/]/g, "");
 
   if (!rawInput) return;
+  if (keyword.length >= 50) {
+    blockKeywordMsg.textContent = "Input is too long";
+    return;
+  }
 
-  chrome.storage.local.get("keywords", (data: { keywords?: string[] }) => {
-    const keywords: string[] = data.keywords || [];
-
-    if (keywords.includes(keyword)) {
-      blockKeywordMsg.textContent = `${keyword} is already in the list of keywords`;
-      return;
+  chrome.runtime.sendMessage({ type: "blockKeyword", keyword }, (response: { success: boolean, error?: string }) => {
+    if (response.success) {
+      blockKeywordMsg.textContent = `"${keyword}" is now blocked`;
+    } else {
+      blockKeywordMsg.textContent = response.error || "Error blocking keyword";
     }
-
-    if (keyword.length >= 50) {
-      blockKeywordMsg.textContent = "Input is too long";
-      return;
-    }
-
-    chrome.runtime.sendMessage({ type: "blockKeyword", keyword });
-    blockKeywordMsg.textContent = `"${keyword}" is now blocked`;
   });
 }
 

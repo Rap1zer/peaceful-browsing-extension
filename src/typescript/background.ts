@@ -1,3 +1,5 @@
+import { error } from "console";
+
 let stylingForBlockedSites: string = "/blocked-webpage.css";
 let isBlockerPaused: boolean = false;
 
@@ -52,15 +54,22 @@ chrome.runtime.onMessage.addListener(
     if (message.type === "blockKeyword" && message.keyword) {
       const keyword = message.keyword;
       chrome.storage.local.get("keywords", (result: { keywords?: string[] }) => {
-        if (result.keywords?.includes(keyword)) { // Keyword already in storage
-          sendResponse({success: false});
+        if (keyword.length >= 50) {
+          sendResponse({success: false, error: "Input is too long"});
+        } else if (result.keywords?.includes(keyword)) { // Keyword already in storage
+          sendResponse({success: false, error: `"${keyword}" is already in the list of keywords`});
           return;
         }
         
         const keywordData: string[] = result.keywords ?? [];
         keywordData.push(keyword);
-        chrome.storage.local.set({ keywords: keywordData });
-        sendResponse({success: true});
+        chrome.storage.local.set({ keywords: keywordData }, () => {
+          if (chrome.runtime.lastError) {
+            sendResponse({success: false, error: chrome.runtime.lastError.message});
+          } else {
+            sendResponse({success: true});
+          }
+        });
       });
     }
   }
