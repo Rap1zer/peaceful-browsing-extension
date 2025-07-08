@@ -59,13 +59,14 @@ async function fetchBlockedKeywords(): Promise<void> {
     filterSearchResults();
 
     // Observe for dynamic content (new search results)
+    const debounceFilter = debounce(filterSearchResults, 500);
     const observer = new MutationObserver((mutationsList) => {
       const meaningfulMutations = mutationsList.some((mutation) => {
         return (mutation.type === "childList" && mutation.addedNodes.length > 0);
       });
 
       if (!meaningfulMutations) return;
-      debounce(filterSearchResults, 200)();
+      debounceFilter();
     });
     const targetNode =  resultsContainer;
     observer.observe(targetNode, { childList: true, subtree: true });
@@ -157,7 +158,7 @@ function extractTextContent(result: HTMLElement): string {
 
 // Scans search results and hides those containing blocked keywords.
 async function filterSearchResults(): Promise<void> {
-  //console.time("filterPages");
+  console.time("filterPages");
   const results: HTMLElement[] = getSearchResults().concat(getAIResults());
 
   results.forEach((result) => {
@@ -170,15 +171,12 @@ async function filterSearchResults(): Promise<void> {
     result.setAttribute("data-processed", "true");
   });
 
-  //console.timeEnd("filterPages");
+  console.timeEnd("filterPages");
 }
 
 // Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
 function getAIResults(): HTMLElement[] {
   const AIresults = Array.from(document.querySelectorAll('div[jsname][data-rl]:not([data-processed])')) as HTMLElement[];
-    
-  AIresults.forEach(div => div.setAttribute("data-processed", "true"));
-  
   return AIresults;
 }
 
