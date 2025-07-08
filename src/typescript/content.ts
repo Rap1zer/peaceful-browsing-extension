@@ -59,13 +59,16 @@ async function fetchBlockedKeywords(): Promise<void> {
     filterSearchResults();
 
     // Observe for dynamic content (new search results)
-    const observer = new MutationObserver(filterSearchResults);
+    const observer = new MutationObserver((mutationsList) => {
+      const meaningfulMutations = mutationsList.some((mutation) => {
+        return (mutation.type === "childList" && mutation.addedNodes.length > 0);
+      });
+
+      if (!meaningfulMutations) return;
+      debounce(filterSearchResults, 200)();
+    });
     const targetNode =  resultsContainer;
-    if (targetNode) {
-      observer.observe(targetNode, { childList: true, subtree: true });
-    } else {
-      console.warn("Search results container not found.");
-    }
+    observer.observe(targetNode, { childList: true, subtree: true });
   } else {
     // Not a Google search page: check for sensitive content in meta/title
     const pageSensitivity = await isPageSensitive();
@@ -154,7 +157,7 @@ function extractTextContent(result: HTMLElement): string {
 
 // Scans search results and hides those containing blocked keywords.
 async function filterSearchResults(): Promise<void> {
-  console.time("filterPages");
+  //console.time("filterPages");
   const results: HTMLElement[] = getSearchResults().concat(getAIResults());
 
   results.forEach((result) => {
@@ -167,7 +170,7 @@ async function filterSearchResults(): Promise<void> {
     result.setAttribute("data-processed", "true");
   });
 
-  console.timeEnd("filterPages");
+  //console.timeEnd("filterPages");
 }
 
 // Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
@@ -271,4 +274,14 @@ function appendDOMElements(words: string[]): void {
   msgContainer.appendChild(paragraph);
 
   document.body.appendChild(msgContainer);
+}
+
+function debounce(func: () => void, wait: number) {
+  let timeout: number | null = null;
+  return () => {
+    if (timeout) clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
+      func();
+    }, wait);
+  };
 }
