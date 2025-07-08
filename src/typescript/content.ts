@@ -1,3 +1,5 @@
+import { debounce } from "./utils.js";
+
 let blockedKeywords: string[] = [];
 let blockedRegexes: RegExp[] = [];
 
@@ -61,11 +63,11 @@ async function fetchBlockedKeywords(): Promise<void> {
     // Observe for dynamic content (new search results)
     const debounceFilter = debounce(filterSearchResults, 500);
     const observer = new MutationObserver((mutationsList) => {
-      const meaningfulMutations = mutationsList.some((mutation) => {
+      const nodesAdded = mutationsList.some((mutation) => {
         return (mutation.type === "childList" && mutation.addedNodes.length > 0);
       });
 
-      if (!meaningfulMutations) return;
+      if (!nodesAdded) return;
       debounceFilter();
     });
     const targetNode =  resultsContainer;
@@ -272,14 +274,4 @@ function appendDOMElements(words: string[]): void {
   msgContainer.appendChild(paragraph);
 
   document.body.appendChild(msgContainer);
-}
-
-function debounce(func: () => void, wait: number) {
-  let timeout: number | null = null;
-  return () => {
-    if (timeout) clearTimeout(timeout);
-    timeout = window.setTimeout(() => {
-      func();
-    }, wait);
-  };
 }

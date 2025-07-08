@@ -1,5 +1,3 @@
-import { error } from "console";
-
 let stylingForBlockedSites: string = "/blocked-webpage.css";
 let isBlockerPaused: boolean = false;
 
