@@ -63,11 +63,12 @@ async function fetchBlockedKeywords(): Promise<void> {
     // Observe for dynamic content (new search results)
     const debounceFilter = debounce(filterSearchResults, 500);
     const observer = new MutationObserver((mutationsList) => {
-      const nodesAdded = mutationsList.some((mutation) => {
-        return (mutation.type === "childList" && mutation.addedNodes.length > 0);
+      const hasRelevantAdditions = mutationsList.some((mutation) => {
+        return !(mutation.target as HTMLElement).hasAttribute('data-processed');
       });
+      // if (hasRelevantAdditions) console.log("mutations:", mutationsList);
+      if (!hasRelevantAdditions) return;
 
-      if (!nodesAdded) return;
       debounceFilter();
     });
     const targetNode =  resultsContainer;
@@ -132,9 +133,29 @@ function compileBlockedRegexes(): void {
 // Gathers visible search result elements on the page
 function getSearchResults(): HTMLElement[] {
   // Get top-level search results
-  const resultsEls = Array.from(resultsContainer.querySelectorAll<HTMLElement>(
-  'div[data-hveid][jscontroller]:not([data-processed]):not([data-initq]):has(a h3)'
-  )); // :not([data-initq]) excludes "People also ask"
+  // :not([data-initq]) excludes "People also ask"
+  const resultsEls = Array.from(
+  resultsContainer.querySelectorAll<HTMLElement>(
+    'div[data-hveid][data-ved]:not([data-processed])'
+  )).filter(el => {
+    let h3Count = 0;
+    let hasAnchorH3 = false;
+
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_ELEMENT, {
+      acceptNode(node) {
+        if ((node as HTMLElement).tagName === 'H3') {
+          h3Count++;
+          if ((node.parentElement?.tagName === 'A')) {
+            hasAnchorH3 = true;
+          }
+        }
+        return NodeFilter.FILTER_SKIP;
+      }
+    });
+
+    while (walker.nextNode() && h3Count <= 1); // Early exit if >1 h3
+    return h3Count === 1 && hasAnchorH3;
+  });
 
   // Get search results from "People also ask"
   const pplAlsoAskEls = Array.from(resultsContainer.querySelectorAll<HTMLElement>(
@@ -156,11 +177,8 @@ function extractTextContent(result: HTMLElement): string {
   return clone.textContent?.trim() || "";
 }
 
-
-
 // Scans search results and hides those containing blocked keywords.
 async function filterSearchResults(): Promise<void> {
-  console.time("filterPages");
   const results: HTMLElement[] = getSearchResults().concat(getAIResults());
 
   results.forEach((result) => {
@@ -168,12 +186,10 @@ async function filterSearchResults(): Promise<void> {
     const processedText = processText(text);
     const keywordsFound = getBlockedKeywords(processedText);
 
-    if (keywordsFound.length > 0) filterResult(result, keywordsFound);
-    
     result.setAttribute("data-processed", "true");
+    if (keywordsFound.length > 0) filterResult(result, keywordsFound);
   });
 
-  console.timeEnd("filterPages");
 }
 
 // Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
@@ -206,7 +222,7 @@ function escapeRegex(string: string): string {
 let resultNum = 0;
 // Hides and replaces a sensitive search result with a warning and a reveal button
 function filterResult(result: HTMLElement, keywordsFound: string[]): void {
-  result.textContent = "";
+  while (result.firstChild) { result.removeChild(result.firstChild); }
 
   const heading = document.createElement("h3");
   heading.textContent = "This result may be triggering";
