@@ -64,11 +64,10 @@ async function fetchBlockedKeywords(): Promise<void> {
     // Observe for dynamic content (new search results)
     const debounceFilter = debounce(filterSearchResults, 500);
     const observer = new MutationObserver((mutationsList) => {
-      const hasRelevantAdditions = mutationsList.some((mutation) => {
+      const hasUnprocessedResults = mutationsList.some((mutation) => {
         return !(mutation.target as HTMLElement).hasAttribute('data-processed');
       });
-      // if (hasRelevantAdditions) console.log("mutations:", mutationsList);
-      if (!hasRelevantAdditions) return;
+      if (!hasUnprocessedResults) return;
 
       debounceFilter();
     });
@@ -190,7 +189,6 @@ async function filterSearchResults(): Promise<void> {
     result.setAttribute("data-processed", "true");
     if (keywordsFound.length > 0) filterResult(result, keywordsFound);
   });
-
 }
 
 // Filters Google AI results **FEATURE ONLY WORKS IN ENGLISH**
