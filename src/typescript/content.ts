@@ -36,11 +36,12 @@ async function fetchBlockedKeywords(): Promise<void> {
       resolve(items);
     });
   });
-  if (data.isBlockerPaused) {
-    return;
-  }
+  if (data.isBlockerPaused) return;
 
   await fetchBlockedKeywords();
+
+  const isImageSearch = window.location.href.includes("&tbm=isch&") || window.location.href.includes("&udm=2&");
+  if (isImageSearch) return;
 
   // Handle Google search results page
   if (
