@@ -8,8 +8,7 @@ let page: Page;
 
 const extensionPath = path.resolve('./dist');
 const userDataDir = './src/tests/tmp-profile';
-const extensionId = 'khhfdlfbbkmlppmcalhncemigmebjjjp';
-const mainUrl = `chrome-extension://${extensionId}/src/main.html`;
+const mainUrl = `chrome-extension://khhfdlfbbkmlppmcalhncemigmebjjjp/src/main.html`;
 
 interface response {
   success: boolean;

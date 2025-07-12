@@ -45,28 +45,25 @@ p {
 
 .keyword-search-container {
   position: relative;
-  overflow-y: scroll;
 }
 
 .keyword-search-container i {
   position: absolute;
-  left: 13px;
+  left: 11px;
   top: 15px;
 }
 
 .keyword-search-input {
-  width: calc(100% - 10px);
+  width: 100%;
   height: 32px;
   border-radius: 4px;
-  margin: 0 5px;
-  padding: 12px 0 12px 28px;
+  padding: 12px 0 12px 32px;
   border: 1px solid black;
 }
 
 .blocked-keywords-list {
   padding: 0;
-  margin: 8px -8px 0 -8px;
-  overflow-y: scroll;
+  margin: 0 -8px 0 -8px;
   max-height: 262px;
 }
 
@@ -124,4 +121,13 @@ p {
 
 .go-back-btn i {
   padding-right: 4px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.keyword-search-container,
+.blocked-keywords-list {
+  overflow-y: auto;
 }
