@@ -9,6 +9,7 @@ let page: Page;
 const extensionPath = path.resolve('./dist');
 const userDataDir = './src/tests/tmp-profile';
 const mainUrl = `chrome-extension://khhfdlfbbkmlppmcalhncemigmebjjjp/src/main.html`;
+const blockKeywordsUrl = `chrome-extension://khhfdlfbbkmlppmcalhncemigmebjjjp/src/block-keywords.html`;
 
 interface response {
   success: boolean;
@@ -137,6 +138,8 @@ test('keyword length validation', async () => {
 
 // Verify user cannot add keyword twice
 test('cannot add keyword twice', async () => {
+  await gotoKeywordsPage();
+
   const keyword: string = 'foobar';
   let response = await addKeyword(keyword);
   expect(response.success).toBe(true);
@@ -159,10 +162,10 @@ async function getIsBlockerPaused(): Promise<boolean> {
 }
 
 async function gotoKeywordsPage(): Promise<void> {
-  const keywordsBtn = await page.$('#keywords-btn');
+  const keywordsBtn = await page.$('#keywords-btn');  
   expect(keywordsBtn, 'Keywords button with id "keywords-btn" not found').not.toBeNull();
   await keywordsBtn!.click();
-  expect(page.url()).toBe(mainUrl);
+  expect(page.url()).toBe(blockKeywordsUrl);
 }
 
 async function addKeyword(newKeyword: string): Promise<response> {
