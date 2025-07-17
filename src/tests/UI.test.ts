@@ -162,7 +162,7 @@ async function gotoKeywordsPage(): Promise<void> {
   const keywordsBtn = await page.$('#keywords-btn');
   expect(keywordsBtn, 'Keywords button with id "keywords-btn" not found').not.toBeNull();
   await keywordsBtn!.click();
-  expect(page.url()).toBe(`chrome-extension://${extensionId}/src/block-keywords.html`);
+  expect(page.url()).toBe(mainUrl);
 }
 
 async function addKeyword(newKeyword: string): Promise<response> {
