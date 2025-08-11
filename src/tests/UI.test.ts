@@ -6,7 +6,7 @@ import path from 'path';
 let context: BrowserContext;
 let page: Page;
 
-const extensionPath = path.resolve('./dist');
+const extensionPath = process.env.EXT_PATH || path.resolve('./dist');
 const userDataDir = './src/tests/tmp-profile';
 const mainUrl = `chrome-extension://khhfdlfbbkmlppmcalhncemigmebjjjp/src/main.html`;
 const blockKeywordsUrl = `chrome-extension://khhfdlfbbkmlppmcalhncemigmebjjjp/src/block-keywords.html`;

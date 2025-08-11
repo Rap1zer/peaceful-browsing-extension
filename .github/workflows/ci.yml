@@ -31,6 +31,8 @@ jobs:
       - name: Run tests
         # use the CI-friendly reporter and fail on problems
         run: npm run test:ci
+        env:
+          EXT_PATH: ${{ github.workspace }}/dist
 
       - name: Upload Playwright Report (artifact)
         if: always()
