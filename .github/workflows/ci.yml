@@ -1,11 +1,3 @@
-name: CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,13 +20,16 @@ jobs:
       - name: Build extension
         run: npm run build
 
-      - name: Run tests
-        # use the CI-friendly reporter and fail on problems
-        run: npm run test:ci
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Run tests under Xvfb
+        # The --server-args sets screen size+depth
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" npm run test:ci
         env:
           EXT_PATH: ${{ github.workspace }}/dist
 
-      - name: Upload Playwright Report (artifact)
+      - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
