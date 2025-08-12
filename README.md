@@ -4,7 +4,7 @@ A Chrome extension which filters sensitive webpages and search results for peopl
 ---
 
 ## Overview
-It’s all too easy to get caught up googling symptoms. This simple extension aims to help individuals with health anxiety and hypochondria be more mindful while using Google.
+It’s all too easy to get caught up Googling symptoms. This simple extension aims to help individuals with health anxiety and hypochondria be more mindful while using Google.
 
 The extension scans Google’s search results and meta-information on open webpages for illness-related keywords. If any are detected, the corresponding results will be blocked. 
 
@@ -42,6 +42,8 @@ npm run build
 ## Privacy and Permissions
 The extension requires broad host permissions so it can scan the content of webpages you visit. These permissions are used only to detect keywords and to block/hide triggering content. **It does not collect or use any user data.**
 
+---
+
 ## Data sources & attribution
 
 The keyword list `public/medicinenet-diseases.json` included in this repository was derived from the following public dataset:
@@ -49,6 +51,8 @@ The keyword list `public/medicinenet-diseases.json` included in this repository 
 - **medicinenet-diseases.json** — originally created and published in the `web-scrapers` repository by Shivanshu Gupta on GitHub. The original source is available [here](https://github.com/Shivanshu-Gupta/web-scrapers).
 
 This dataset in the original repository is released under the **MIT License**. To comply with that license we include this attribution and [a copy of the MIT license in this repository](/third_party_licenses/medicinenet-NOTICE.txt).
+
+---
 
 ## Disclaimer
 This extension is designed to help reduce exposure to illness-related content for individuals with health anxiety and hypochondria. It is not intended to provide medical advice, diagnosis, or treatment.
