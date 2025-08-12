@@ -17,19 +17,30 @@ Please note that the pre-existing list of keywords is not exhaustive and may not
 ## Installation
 
 ### From Chrome Web Store
-
 [Install from the web store.](https://chromewebstore.google.com/detail/peaceful-browsing-for-hea/jjkmdldnaipgenmhldkdepaakieincfe?hl=en&authuser=0)
 
 ### From source
-
 1. Clone this repository:
 
 ```bash
 git clone https://github.com/yourusername/health-anxiety-filter.git
 ```
 
-2. Open Chrome and go to `chrome://extensions/`.
-3. Enable **Developer mode** (toggle at the top right).
-4. Click **Load unpacked** and select the cloned repository folder (the folder that contains `manifest.json`).
+2. Install dependencies and build the extension:
 
-> If the extension requires a build step (e.g., bundler or TypeScript), run the build script first: `npm ci` then `npm run build` (or your chosen commands).
+```bash
+npm install
+npm run build
+```
+
+3. Open Chrome and go to `chrome://extensions/`.
+4. Enable **Developer mode** (toggle at the top right).
+5. Click **Load unpacked** and select the cloned repository folder (the folder that contains `manifest.json`).
+
+---
+
+## Privacy and Permissions
+The extension requires broad host permissions so it can scan the content of webpages you visit. These permissions are used only to detect keywords and to block/hide triggering content. **It does not collect or use any user data.**
+
+## Disclaimer
+This extension is designed to help reduce exposure to illness-related content for individuals with health anxiety and hypochondria. It is not intended to provide medical advice, diagnosis, or treatment.
