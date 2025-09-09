@@ -4,7 +4,7 @@
     "@types/chrome": "^0.0.326",
     "@types/node": "^24.0.8",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^7.1.5"
   },
   "scripts": {
     "dev": "vite",
