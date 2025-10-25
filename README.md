@@ -1,5 +1,5 @@
 # Peaceful Browsing for Health Anxiety
-A Chrome extension which filters sensitive webpages and search results for people with health anxiety and hypochondria.
+A [Chrome extension](https://chromewebstore.google.com/detail/peaceful-browsing-for-hea/jjkmdldnaipgenmhldkdepaakieincfe?hl=en&authuser=0) which filters sensitive webpages and search results for people with health anxiety and hypochondria.
 
 
 ## Overview
