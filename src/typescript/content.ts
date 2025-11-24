@@ -174,7 +174,16 @@ function extractTextContent(result: HTMLElement): string {
   // Remove unwanted elements
   clone.querySelectorAll("script, style, head").forEach(el => el.remove());
 
-  return clone.textContent?.trim() || "";
+  // Add spaces between text nodes to avoid merging words
+  const walker = document.createTreeWalker(clone, NodeFilter.SHOW_TEXT);
+  let text = "";
+  let node: Node | null;
+
+  while ((node = walker.nextNode())) {
+    text += node.textContent + " ";
+  }
+
+  return text;
 }
 
 // Scans search results and hides those containing blocked keywords.
